@@ -105,7 +105,7 @@
               JAI AUTO DUBBING
             </h1>
             <span id="lblAppVersion" class="cursor-pointer text-[10px] md:text-xs px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 font-mono font-bold shadow-sm hover:bg-cyan-900/60 hover:border-cyan-300 transition-all flex items-center space-x-1" title="ចុចដើម្បីមើលប្រវត្តិកំណែប្រែ (Changelog)">
-              <span>v2.5.2 PRO</span> <span>📋</span>
+              <span>v2.5.3 PRO</span> <span>📋</span>
             </span>
           </div>
           <p class="text-xs text-cyan-400 font-medium">
@@ -188,7 +188,10 @@
     <div class="bg-[#101726] border border-[#1b263b] rounded-xl p-3.5 shadow-md">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         <div class="space-y-1.5">
-          <label class="block text-xs font-bold text-slate-300">GEMINI MODEL (ម៉ូដែល AI):</label>
+          <div class="flex justify-between items-center">
+            <label class="block text-xs font-bold text-slate-300">GEMINI MODEL (ម៉ូដែល AI):</label>
+            <span id="badgeAiReview" class="text-[10px] text-emerald-400 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/40" title="ដំណើរការផ្ទៀងផ្ទាត់សកម្មភាព & សម្រិតសម្រាំង ២ ដំណាក់កាល">✨ Two-Pass Review</span>
+          </div>
           <select id="selGeminiModel" class="w-full bg-[#090e17] border border-[#1d293d] rounded-lg px-3 py-2 text-xs md:text-sm text-slate-200 focus:outline-none focus:border-cyan-400 font-semibold cursor-pointer">
             <option value="gemini-3.5-flash" selected>Gemini 3.5 Flash (Recommended 🚀 ល្បឿនលឿន &amp; គុណភាពល្អឥតខ្ចោះ)</option>
             <option value="gemini-3.8-flash">Gemini 3.8 Flash (Flagship 3.x ⚡ កំណែចុងក្រោយ)</option>
@@ -391,6 +394,19 @@
           <option value="small">small (ច្បាស់ល្អ)</option>
           <option value="base">base (លឿន &amp; ស្តង់ដារ)</option>
         </select>
+      </div>
+
+      <!-- Two-Pass AI Review Pass Setting -->
+      <div class="space-y-1.5 border-t border-slate-800 pt-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <label class="text-xs font-bold text-slate-300 flex items-center space-x-1.5">
+              <span>🔍 AI Cinema Review Pass (ផ្ទៀងផ្ទាត់សកម្មភាព &amp; សម្រិតសម្រាំង):</span>
+            </label>
+            <p class="text-[11px] text-slate-400">ផ្ទៀងផ្ទាត់ឡើងវិញដោយស្វ័យប្រវត្តិ ធានាការនិយាយត្រូវកាយវិការ និងកាត់បន្ថយឃ្លាវែងជ្រុល</p>
+          </div>
+          <input id="modalAiReviewToggle" type="checkbox" checked class="accent-cyan-400 w-4 h-4 cursor-pointer">
+        </div>
       </div>
 
       <!-- Time-Stretch Settings -->
@@ -620,6 +636,12 @@
         // Stats
         if (state.stats) {
           updateStatsUI(state.stats);
+        }
+
+        // Two-Pass Review badge
+        const reviewBadge = document.getElementById('badgeAiReview');
+        if (reviewBadge) {
+          reviewBadge.style.display = (currentConfig.enable_ai_review !== false) ? 'inline-block' : 'none';
         }
 
         // Version & Changelog binding
@@ -925,6 +947,7 @@
         apiEl.value = currentConfig.gemini_api_key || '';
         apiEl.style.webkitTextSecurity = isKeyVisible ? 'none' : 'disc';
         document.getElementById('modalWhisperModel').value = currentConfig.whisper_model || 'large-v3-turbo';
+        document.getElementById('modalAiReviewToggle').checked = currentConfig.enable_ai_review !== false;
         document.getElementById('modalStretchToggle').checked = currentConfig.enable_time_stretch !== false;
         document.getElementById('modalStretchSlider').value = currentConfig.max_stretch_ratio || 2.50;
         document.getElementById('lblStretchVal').textContent = `${parseFloat(currentConfig.max_stretch_ratio || 2.5).toFixed(2)}x`;
@@ -971,6 +994,7 @@
       const newSettings = {
         gemini_api_key: document.getElementById('modalApiKey').value.trim(),
         whisper_model: document.getElementById('modalWhisperModel').value,
+        enable_ai_review: document.getElementById('modalAiReviewToggle').checked,
         enable_time_stretch: document.getElementById('modalStretchToggle').checked,
         max_stretch_ratio: parseFloat(document.getElementById('modalStretchSlider').value),
         voice_speed: document.getElementById('modalVoiceSpeed').value,
@@ -979,6 +1003,11 @@
         max_parallel_videos: parseInt(document.getElementById('modalParallel').value) || 2
       };
       await callPython('save_settings', newSettings);
+      currentConfig.enable_ai_review = newSettings.enable_ai_review;
+      const reviewBadge = document.getElementById('badgeAiReview');
+      if (reviewBadge) {
+        reviewBadge.style.display = newSettings.enable_ai_review ? 'inline-block' : 'none';
+      }
       modal.classList.add('hidden');
       alert('ការកំណត់ត្រូវបានរក្សាទុកដោយជោគជ័យ!');
     });

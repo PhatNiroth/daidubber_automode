@@ -25,6 +25,7 @@ DEFAULT_CONFIG = {
     "last_output_folder": "",
     "khmer_prompt_style": "natural_movie",
     "drama_genre": "wuxia",  # 'wuxia' (បុរាណ ក្បាច់គុណ), 'modern' (សម័យទំនើប), 'palace' (រាជវាំង), 'auto' (ស្វ័យប្រវត្តិ)
+    "enable_ai_review": True,  # Two-Pass Cinema Review & Audit Engine (ផ្ទៀងផ្ទាត់សកម្មភាព & អត្ថន័យស្វ័យប្រវត្តិ)
     "max_parallel_videos": 2  # 1 to 10 concurrent videos
 }
 

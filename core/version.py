@@ -4,12 +4,24 @@ Central Version & Release Metadata for JAI AUTO DUBBING.
 Single source of truth for UI, Installer, and Build tools.
 """
 
-__version__ = "2.5.2"
+__version__ = "2.5.3"
 __release_date__ = "2026-11-02"
-__build_code__ = "20261102.01"
-__edition__ = "Imperial Pro 3.x Edition"
+__build_code__ = "20261102.02"
+__edition__ = "Imperial Pro Studio Review Edition"
 
 CHANGELOG = [
+    {
+        "version": "2.5.3",
+        "date": "2026-11-02",
+        "title": "Two-Pass AI Cinema Review & Audit Engine",
+        "highlights": [
+            "Two-Pass Reflection Pipeline: automatically audits and refines draft dialogue against physical actions, screen gestures, and speech duration",
+            "Action & Gesture Synchronization: guarantees precise cinema verbs for slapping, combat, fleeing, choking, and expulsions",
+            "Duration & Timing Fitting: condenses overlong lines for short duration subtitles (<=1.8s) to prevent rushed TTS speech",
+            "Pure Khmer Unicode Enforcement with automated regex filters eliminating stray Thai or Chinese Unicode leakage",
+            "UI Settings toggle for AI Cinema Review Pass with live status indicator badge"
+        ]
+    },
     {
         "version": "2.5.2",
         "date": "2026-11-02",

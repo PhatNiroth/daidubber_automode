@@ -171,8 +171,10 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
         return ""
     
     t = text.strip()
-    
-    # Priority 1: Martial arts combat begging & doctor mistranslations (ASR mishearing 大侠/大师/大人 as 大夫/doctor)
+    # Strip any leaked Thai characters (\u0E00-\u0E7F) or remaining Chinese characters (\u4E00-\u9FFF)
+    t = re.sub(r'[\u0e00-\u0e7f]+', '', t)
+    t = re.sub(r'[\u4e00-\u9fff]+', '', t)
+    t = re.sub(r'\s+', ' ', t).strip()
     # Begging for life or asking for mercy in combat addresses a warrior/hero (អ្នកក្លាហាន), not a hospital doctor
     t = re.sub(r'(?:លោក)?គ្រូពេទ្យ\s*(?=(?:មេត្តា|សង្គ្រោះ|លើកលែង|កុំសម្លាប់|ទុកជីវិត))', 'អ្នកក្លាហាន ', t)
 
@@ -546,6 +548,49 @@ Output JSON:
 ]
 """
 
+REVIEWER_SYSTEM_PROMPT = """You are an elite Senior Cambodian Film Dubbing Director, Dialogue Editor, and Cinema Localization Critic (អ្នកត្រួតពិនិត្យ និងកែសម្រួលអត្ថបទបញ្ចូលសំឡេងភាពយន្តខ្មែរជាន់ខ្ពស់).
+
+YOUR SOLE MISSION:
+Audit, critique, and refine the DRAFT Khmer dubbing script against the original Chinese scene dialogue, timing, and video context, elevating it into a natural, emotionally resonant Cambodian cinema dubbing masterpiece.
+
+CRITICAL 4-POINT AUDIT CHECKLIST:
+1. 🎭 PHYSICAL ACTION & ON-SCREEN GESTURE ALIGNMENT (តម្រឹមពាក្យសម្ដីឱ្យត្រូវនឹងសកម្មភាពកាយវិការលើអេក្រង់):
+   - Face-slap / Combat: If character is slapped, struck, fighting or pulling weapons, USE INTENSE ACTION VERBS ("ទះកំផ្លៀង!", "ទះមាត់វា!", "វាយវា!", "បាញ់វាភ្លាម!", "កុំវាយ!"). NEVER use passive or flat words!
+   - Physical Contact / Choking / Restraint: If grabbed by wrist, collar, or choked, dialogue MUST be ("លែងខ្ញុំ!", "លែងដៃភ្លាម!", "ច្របាច់កឯងឲ្យងាប់!"). NEVER "ដាក់ចុះ"!
+   - Fleeing / Chasing: Running away MUST BE ("ឆាប់រត់ទៅ!", "ឆាប់គេចខ្លួនទៅ!"). NEVER "ឆាប់ដើរទៅ"!
+   - Kneeling / Bowing: ("លុតជង្គង់ចុះ!", "ក្រោកឡើង", "ក្រាបសំពះសុំទោស!").
+   - Kicking out / Expulsion: ("ចេញពីផ្ទះនេះភ្លាម!", "ចុះចេញទៅ!", "ចេញភ្លាម!"). NEVER "រមៀល"!
+
+2. ⏱️ TIMING & SYLLABLE LENGTH FITTING (កាត់បន្ថយ និងបង្រួមឃ្លាដែលវែងជ្រុលធៀបនឹងពេលវេលា):
+   - Speech MUST fit naturally within the allocated subtitle duration. Khmer Edge-TTS speaks ~13 chars/sec.
+   - For SHORT segments (duration <= 1.8s): The Khmer line MUST be punchy and concise (under 18 characters / 3-5 syllables) so the actor does not rush.
+     * Overlong: "ឆាប់រត់ចេញពីទីនេះឲ្យលឿនទៅ!" -> Polish: "ឆាប់រត់ទៅ!"
+     * Overlong: "តើឯងយកសិទ្ធិអីមកបង្គាប់បញ្ជាខ្ញុំ?" -> Polish: "ឯងអាងអី?!"
+     * Overlong: "កុំបន្ទោសថាខ្ញុំគ្មានមេត្តាលើឯង!" -> Polish: "កុំបន្ទោសអញ!"
+     * Overlong: "ជួយជីវិតខ្ញុំផងអ្នកទាំងអស់គ្នា!" -> Polish: "ជួយផង!"
+   - For NORMAL/LONG segments (duration >= 2.2s): Keep the rich, emotive, full dialogue. Do NOT over-shorten.
+
+3. 👥 DIALOGUE CONTINUITY & PRONOUN STABILITY (រក្សាសព្វនាម និងការតភ្ជាប់អត្ថន័យឆ្លើយឆ្លង):
+   - Characters MUST NEVER switch pronouns midway through a conversation.
+   - Enemies / Heated argument: strictly "ឯង / អញ" (NEVER switch to "អ្នក / ខ្ញុំ").
+   - Lovers / Spouses: strictly "បង / អូន".
+   - Friends: "ឯង / ខ្ញុំ" or "គ្នា / ឯង".
+   - Question-and-Answer cohesion: The response MUST directly answer the previous speaker's accusation or question.
+
+4. 🎬 SPOKEN CINEMA AUTHENTICITY, STRICT KHMER SCRIPT & PROPER NOUNS:
+   - Output 'km_text' MUST be written 100% in Cambodian Khmer Unicode script (\\u1780-\\u17FF).
+   - ABSOLUTELY FORBIDDEN: NEVER include Thai characters (\\u0E00-\\u0E7F) or Chinese characters!
+   - Ban all robotic written bookish fillers ("តើអ្នក...", "ហេតុអ្វីបានជា...", "ទោះបីជាយ៉ាងណាក៏ដោយ...", "ដោយសារតែ...").
+   - Personal names must be phonetically correct (e.g. 萧炎 -> ស៊ាវយាន, 郭靖 -> គួជិន, 张无忌 -> ចាងអ៊ូជី, 林辰 -> លីនចិន, 顾总 -> លោកប្រធានគូ).
+
+FORMAT:
+Return strictly a valid JSON array matching the exact segment IDs provided:
+[
+  {"id": 1, "km_text": "...", "gender": "male"|"female", "role": "...", "pitch": "..."},
+  ...
+]
+"""
+
 class GeminiTranslator:
     """Translates Chinese dialogue segments into natural Khmer using Google Gemini with multi-key pool rotation and robust fallback."""
 
@@ -553,12 +598,20 @@ class GeminiTranslator:
     _pool_lock = threading.Lock()
     _current_global_key_idx = 0
 
-    def __init__(self, api_key: str = "", model_name: str = "gemini-3.5-flash", style_prompt: str = "", drama_genre: str = "wuxia"):
+    def __init__(
+        self, 
+        api_key: str = "", 
+        model_name: str = "gemini-3.5-flash", 
+        style_prompt: str = "", 
+        drama_genre: str = "wuxia",
+        enable_ai_review: bool = True
+    ):
         self.raw_api_key = api_key
         self.api_keys = parse_api_keys(api_key)
         self.model_name = model_name or "gemini-3.5-flash"
         self.style_prompt = style_prompt
         self.drama_genre = drama_genre or "wuxia"
+        self.enable_ai_review = enable_ai_review
         self._init_current_key()
 
     def set_api_key(self, api_key: str):
@@ -645,6 +698,91 @@ class GeminiTranslator:
             return True, f"ភ្ជាប់បានជោគជ័យ {valid_count}/{total_keys} Keys (មាន Key ខ្លះខុស ឬអស់ Quota)"
         else:
             return False, f"កំហុសភ្ជាប់ API: {'; '.join(errors[:2])}"
+
+    def review_and_audit_batch(
+        self,
+        batch_segments: List[Dict[str, Any]],
+        scene_img: Optional[Any] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        [Pass 2/2] AI Cinema Review & Audit Engine.
+        Critiques and refines the draft Khmer translation against physical action,
+        spoken cadence, timing constraints, and pronoun continuity.
+        Falls back seamlessly to draft segments if any error occurs.
+        """
+        if not batch_segments:
+            return batch_segments
+
+        review_input = [
+            {
+                "id": s["id"],
+                "duration": s.get("duration", 0.0),
+                "text": s.get("text", ""),
+                "draft_km": s.get("km_text", ""),
+                "role": s.get("gemini_role", ""),
+                "gender": s.get("gemini_gender", "")
+            }
+            for s in batch_segments
+        ]
+
+        active_key = self._get_active_key()
+        if not active_key:
+            return batch_segments
+
+        try:
+            genai.configure(api_key=active_key)
+            review_prompt = f"""{REVIEWER_SYSTEM_PROMPT}
+
+=== DRAFT SCENE SCRIPT TO AUDIT & REFINE (ផ្ទៀងផ្ទាត់ និងកែលម្អអត្ថបទកុនព្រាង) ===
+{json.dumps(review_input, ensure_ascii=False, indent=2)}
+
+Audit each line, verify screen action alignment, tighten duration fit, ensure consistent pronouns, and return the polished final JSON:"""
+
+            payload = [review_prompt, scene_img] if scene_img is not None else review_prompt
+            
+            # Use active model (e.g. gemini-3.5-flash / gemini-3.5-flash-lite)
+            model = genai.GenerativeModel(
+                model_name=self.model_name,
+                generation_config={"response_mime_type": "application/json"}
+            )
+            response = model.generate_content(payload, request_options={"timeout": 15})
+            
+            if response and response.text:
+                raw_text = response.text.strip()
+                raw_text = re.sub(r"^```(?:json)?", "", raw_text, flags=re.MULTILINE)
+                raw_text = re.sub(r"```$", "", raw_text, flags=re.MULTILINE).strip()
+                reviewed_data = json.loads(raw_text)
+                
+                if isinstance(reviewed_data, list):
+                    reviewed_map = {
+                        item["id"]: item 
+                        for item in reviewed_data 
+                        if isinstance(item, dict) and "id" in item
+                    }
+                    
+                    polished_segments = []
+                    for s in batch_segments:
+                        s_pol = dict(s)
+                        if s["id"] in reviewed_map:
+                            rev_item = reviewed_map[s["id"]]
+                            new_km = rev_item.get("km_text", "").strip()
+                            if new_km and not contains_chinese(new_km):
+                                new_km = refine_khmer_dialogue(new_km, genre=self.drama_genre, duration=float(s.get("duration", 0.0)))
+                                s_pol["km_text"] = new_km
+                                if rev_item.get("gender"):
+                                    s_pol["gemini_gender"] = rev_item["gender"]
+                                if rev_item.get("role"):
+                                    s_pol["gemini_role"] = rev_item["role"]
+                                if rev_item.get("pitch"):
+                                    s_pol["voice_pitch"] = rev_item["pitch"]
+                        polished_segments.append(s_pol)
+                    
+                    logger.success("✨ [Pass 2/2] ផ្ទៀងផ្ទាត់ និងសម្រិតសម្រាំងអត្ថបទកុនរួចរាល់ (Action & Timing Audited)!")
+                    return polished_segments
+        except Exception as e:
+            logger.warning(f"⚠️ AI Review Pass បានជួបប្រទះបញ្ហា ({str(e)[:45]}) -> រក្សាទុកអត្ថបទព្រាង Pass 1 បន្ត...")
+            
+        return batch_segments
 
     def translate_segments(
         self, 
@@ -820,6 +958,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                                 role_mapping[item["id"]] = item.get("role", "")
                                 pitch_mapping[item["id"]] = item.get("pitch", "+0Hz")
 
+                    batch_draft = []
                     for s in batch:
                         s_copy = dict(s)
                         km_val = mapping.get(s["id"], "").strip()
@@ -835,8 +974,14 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                         s_copy["gemini_gender"] = gender_mapping.get(s["id"], "")
                         s_copy["gemini_role"] = role_mapping.get(s["id"], "")
                         s_copy["voice_pitch"] = pitch_mapping.get(s["id"], "+0Hz")
-                        translated_segments.append(s_copy)
+                        batch_draft.append(s_copy)
 
+                    # [Pass 2/2] Two-Pass AI Cinema Review & Audit Engine
+                    if self.enable_ai_review and batch_draft:
+                        logger.info(f"🔍 [Pass 2/2] កំពុងផ្ទៀងផ្ទាត់សកម្មភាព & អត្ថន័យកញ្ចប់ទី {b_idx + 1}/{total_batches} (AI Cinema Review Pass)...")
+                        batch_draft = self.review_and_audit_batch(batch_draft, scene_img=scene_img)
+
+                    translated_segments.extend(batch_draft)
                     logger.info(f"បកប្រែរួចរាល់កញ្ចប់ទី {b_idx + 1}/{total_batches}")
                     success = True
                     break

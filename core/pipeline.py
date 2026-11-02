@@ -181,7 +181,8 @@ class DubbingPipeline:
                 api_key=cfg.get("gemini_api_key", ""),
                 model_name=cfg.get("gemini_model", "gemini-3.5-flash"),
                 style_prompt=cfg.get("khmer_prompt_style", "natural_movie"),
-                drama_genre=cfg.get("drama_genre", "wuxia")
+                drama_genre=cfg.get("drama_genre", "wuxia"),
+                enable_ai_review=cfg.get("enable_ai_review", True)
             )
             translated_segments = translator.translate_segments(
                 segments, 
