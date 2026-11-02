@@ -324,10 +324,13 @@ class MainWindow(ctk.CTk):
         self.gemini_model_cb = ctk.CTkComboBox(
             col1,
             values=[
-                "gemini-2.5-pro",
-                "gemini-2.5-flash",
-                "gemini-flash-latest",
                 "gemini-3.5-flash",
+                "gemini-3.8-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.1-pro-preview",
+                "gemini-3-flash-preview",
+                "gemini-flash-latest",
+                "gemini-2.5-flash",
                 "gemini-flash-lite-latest"
             ],
             command=self._on_gemini_model_change,
@@ -337,7 +340,7 @@ class MainWindow(ctk.CTk):
             font=FONT_BODY,
             height=36
         )
-        self.gemini_model_cb.set(self.config_manager.get("gemini_model", "gemini-2.5-flash"))
+        self.gemini_model_cb.set(self.config_manager.get("gemini_model", "gemini-3.5-flash"))
         self.gemini_model_cb.pack(fill="x")
 
         # Khmer Voice Dropdown

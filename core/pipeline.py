@@ -179,7 +179,7 @@ class DubbingPipeline:
             report(4, 0.65, "កំពុងបកប្រែជាភាសាខ្មែរបែបកុន (Gemini AI Cinema Dubbing)...")
             translator = GeminiTranslator(
                 api_key=cfg.get("gemini_api_key", ""),
-                model_name=cfg.get("gemini_model", "gemini-2.5-flash"),
+                model_name=cfg.get("gemini_model", "gemini-3.5-flash"),
                 style_prompt=cfg.get("khmer_prompt_style", "natural_movie"),
                 drama_genre=cfg.get("drama_genre", "wuxia")
             )

@@ -514,10 +514,10 @@ class GeminiTranslator:
     _pool_lock = threading.Lock()
     _current_global_key_idx = 0
 
-    def __init__(self, api_key: str = "", model_name: str = "gemini-2.5-flash", style_prompt: str = "", drama_genre: str = "wuxia"):
+    def __init__(self, api_key: str = "", model_name: str = "gemini-3.5-flash", style_prompt: str = "", drama_genre: str = "wuxia"):
         self.raw_api_key = api_key
         self.api_keys = parse_api_keys(api_key)
-        self.model_name = model_name or "gemini-2.5-flash"
+        self.model_name = model_name or "gemini-3.5-flash"
         self.style_prompt = style_prompt
         self.drama_genre = drama_genre or "wuxia"
         self._init_current_key()
@@ -574,11 +574,14 @@ class GeminiTranslator:
             mask = k[:6] + "..." + k[-4:] if len(k) > 10 else f"Key #{idx+1}"
             try:
                 genai.configure(api_key=k)
-                success_key = False
-                for m_cand in [self.model_name, "gemini-2.5-flash", "gemini-flash-latest"]:
+                cands = [self.model_name]
+                for c in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-2.5-flash", "gemini-flash-latest"]:
+                    if c not in cands:
+                        cands.append(c)
+                for m_cand in cands:
                     try:
                         model = genai.GenerativeModel(m_cand)
-                        response = model.generate_content("Hello! Say 'OK' in Khmer.")
+                        response = model.generate_content("Hello! Say 'OK' in Khmer.", request_options={"timeout": 10})
                         if response and response.text:
                             valid_count += 1
                             success_key = True
@@ -681,15 +684,18 @@ class GeminiTranslator:
                     active_key = self._get_active_key()
                     genai.configure(api_key=active_key)
 
-                    # Model candidates fallback order for resilience: Primary chosen -> Pro -> 2.5-Flash -> Flash-Latest -> 3.5-Flash -> Lite
+                    # Model candidates fallback order for resilience: Primary chosen -> 3.x models -> 2.5-Flash -> Flash-Latest -> Lite
                     m_candidates = [self.model_name]
                     fallback_chain = [
-                        "gemini-2.5-pro",
-                        "gemini-pro-latest",
-                        "gemini-2.5-flash",
-                        "gemini-flash-latest",
                         "gemini-3.5-flash",
-                        "gemini-flash-lite-latest"
+                        "gemini-3.8-flash",
+                        "gemini-3.5-flash-lite",
+                        "gemini-3-flash-preview",
+                        "gemini-3.1-pro-preview",
+                        "gemini-flash-latest",
+                        "gemini-2.5-flash",
+                        "gemini-flash-lite-latest",
+                        "gemini-pro-latest"
                     ]
                     for cand in fallback_chain:
                         if cand not in m_candidates:
@@ -803,7 +809,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                     is_hard_quota = "exceeded your current quota" in err_str.lower() or "billing" in err_str.lower()
                     
                     if is_model_unavailable:
-                        for next_m in ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-flash-latest", "gemini-3.5-flash", "gemini-flash-lite-latest"]:
+                        for next_m in ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"]:
                             if next_m != self.model_name:
                                 logger.warning(f"🔄 ម៉ូដែល {self.model_name} មិនអាចប្រើបាន -> ប្តូរទៅប្រើ {next_m} ភ្លាមៗ...")
                                 self.model_name = next_m

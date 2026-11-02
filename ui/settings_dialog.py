@@ -114,11 +114,14 @@ class SettingsDialog(ctk.CTkToplevel):
         self.gemini_model_cb = ctk.CTkComboBox(
             sec2,
             values=[
-                "gemini-2.5-flash",
-                "gemini-flash-lite-latest",
+                "gemini-3.5-flash",
                 "gemini-3.8-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.1-pro-preview",
+                "gemini-3-flash-preview",
                 "gemini-flash-latest",
-                "gemini-2.5-pro"
+                "gemini-2.5-flash",
+                "gemini-flash-lite-latest"
             ],
             fg_color=INPUT_BG,
             border_color=INPUT_BORDER,

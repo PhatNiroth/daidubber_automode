@@ -4,12 +4,24 @@ Central Version & Release Metadata for JAI AUTO DUBBING.
 Single source of truth for UI, Installer, and Build tools.
 """
 
-__version__ = "2.5.1"
-__release_date__ = "2026-10-22"
-__build_code__ = "20261022.02"
-__edition__ = "Imperial Pro"
+__version__ = "2.5.2"
+__release_date__ = "2026-11-02"
+__build_code__ = "20261102.01"
+__edition__ = "Imperial Pro 3.x Edition"
 
 CHANGELOG = [
+    {
+        "version": "2.5.2",
+        "date": "2026-11-02",
+        "title": "Next-Gen Gemini 3.x AI Series Integration",
+        "highlights": [
+            "Full integration of Gemini 3.x Series (Gemini 3.5 Flash, 3.8 Flash, 3.5 Flash Lite, 3.1 Pro Preview, 3-Flash Preview)",
+            "Superior natural Khmer cinema dialogue translation with enhanced emotional depth and context retention",
+            "Intelligent resilient fallback chain automatically navigating between 3.x Flash and Lite models",
+            "Dynamic custom model recognition supporting future Gemini releases without code changes",
+            "Enhanced API testing with automatic request timeouts preventing connection hangs"
+        ]
+    },
     {
         "version": "2.5.1",
         "date": "2026-10-22",
