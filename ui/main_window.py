@@ -273,7 +273,7 @@ class MainWindow(ctk.CTk):
         self.card_opt1.pack(side="left", fill="x", expand=True, padx=(0, 8), pady=2)
         r1 = ctk.CTkRadioButton(
             self.card_opt1,
-            text="រក្សា BGM & FX ស្អាត (លុបសំឡេងថ្ងូរ/ស្រែក ទុកសំឡេងកុន)",
+            text="រក្សា BGM & Sound FX ស្អាត (លុបចម្រៀង/និយាយ មិនដាច់ៗ)",
             variable=self.vocal_mode_var,
             value="separate_bgm",
             font=FONT_BODY_BOLD,
@@ -583,7 +583,7 @@ class MainWindow(ctk.CTk):
         self.card_opt2.configure(border_color=ACCENT_CYAN if mode == "mute_original" else CARD_BORDER, border_width=1.5 if mode == "mute_original" else 1)
 
         if mode == "separate_bgm":
-            self.lbl_naming_notice.configure(text="វីដេអូនឹងរក្សាទុកឈ្មោះ: EP001_KH.mp4 • រក្សាភ្លេង BGM/Sound FX 100% និងលុបតែសំឡេងចិន (Demucs AI)")
+            self.lbl_naming_notice.configure(text="វីដេអូនឹងរក្សាទុកឈ្មោះ: EP001_KH.mp4 • រក្សាភ្លេង BGM/Sound FX 100% និងលុបតែសំឡេងចិន (BS-Roformer AI)")
         else:
             self.lbl_naming_notice.configure(text="វីដេអូនឹងរក្សាទុកឈ្មោះ: EP001_KH.mp4 • សំឡេងដើមនឹងត្រូវបិទ (Mute) 100% ដាក់តែសំឡេងខ្មែរ")
 

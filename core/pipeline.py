@@ -127,7 +127,9 @@ class DubbingPipeline:
             if self.is_cancelled: return False
             report(1, 0.15, "កំពុងស្រង់សំឡេងចេញពីវីដេអូ...")
             extracted_wav = str(temp_dir / "original_audio.wav")
-            separator = VocalSeparator(model_name=cfg.get("demucs_model", "htdemucs"), device=cfg.get("device", "cuda"))
+            sep_engine = cfg.get("separation_engine", "roformer")
+            sep_model = cfg.get("roformer_model", "model_bs_roformer_ep_317_sdr_12.9755.ckpt") if sep_engine == "roformer" else cfg.get("demucs_model", "htdemucs")
+            separator = VocalSeparator(engine=sep_engine, model_name=sep_model, device=cfg.get("device", "cuda"))
             if not separator.extract_audio_from_video(str(video_file), extracted_wav):
                 return False
 
@@ -141,13 +143,14 @@ class DubbingPipeline:
             bgm_wav = None
 
             if vocal_mode in ["separate_bgm", "clean_foley"]:
-                report(2, 0.30, "កំពុងបំបែកសំឡេង និងសម្រិតសម្រាំងរក្សាទុក Foley/Sound FX & BGM (Demucs AI)...")
-                v_path, b_path = separator.separate_vocals(extracted_wav, str(temp_dir / "demucs"), clean_foley=True)
+                engine_title = "BS-Roformer AI" if separator.engine == "roformer" else "Demucs AI"
+                report(2, 0.30, f"កំពុងបំបែកសំឡេងចម្រៀង/និយាយ និងរក្សាទុក BGM & Sound FX ({engine_title})...")
+                v_path, b_path = separator.separate_vocals(extracted_wav, str(temp_dir / "separation"), clean_foley=False)
                 if v_path and b_path and os.path.exists(b_path):
                     vocals_wav = v_path
                     bgm_wav = b_path
                 else:
-                    logger.error("❌ ការបំបែកសំឡេង BGM ដោយ Demucs មិនបានសម្រេច (Demucs separation failed)!")
+                    logger.error(f"❌ ការបំបែកសំឡេង BGM ដោយ {engine_title} មិនបានសម្រេច!")
                     vocals_wav = extracted_wav
                     bgm_wav = None  # Never fall back to extracted_wav because it contains original Chinese vocals!
             else:
@@ -199,21 +202,28 @@ class DubbingPipeline:
             # Auto Speaker Gender Detection (Acoustic Pitch + Gemini Context)
             chosen_voice = cfg.get("khmer_voice", "km-KH-PisethNeural")
             if chosen_voice == "auto":
-                report(4, 0.72, "🤖 កំពុងវិភាគ និងចាប់សំឡេងប្រុស/ស្រី (Acoustic Pitch + Context)...")
+                report(4, 0.72, "🤖 កំពុងវិភាគ និងចាប់សំឡេងប្រុស/ស្រី (AI Character Tracking & Context)...")
                 prev_voice = None
                 for seg in translated_segments:
                     f0 = GenderDetector.detect_pitch_f0(vocals_wav, seg.get("start", 0), seg.get("end", 0))
                     voice_id, gender_label = GenderDetector.determine_voice(
                         pitch_f0=f0,
                         gemini_gender=seg.get("gemini_gender"),
-                        previous_voice=prev_voice
+                        previous_voice=prev_voice,
+                        gemini_role=seg.get("gemini_role")
                     )
                     seg["assigned_voice"] = voice_id
                     seg["detected_gender"] = gender_label
                     seg["pitch_f0"] = f0
+                    prev_voice = voice_id
 
-                    # Character Role Voice Tuning:
-                    # Dynamic character differentiation without artificial vocoder distortion:
+                # Smooth isolated blips and enforce character consistency lock across scene
+                translated_segments = GenderDetector.smooth_speaker_consistency(translated_segments)
+
+                # Character Role Voice Tuning:
+                # Dynamic character differentiation without artificial vocoder distortion:
+                for seg in translated_segments:
+                    voice_id = seg.get("assigned_voice", "km-KH-PisethNeural")
                     role = (seg.get("gemini_role") or "").lower()
                     km_txt = seg.get("km_text", "")
                     is_urgent = any(w in km_txt for w in ["!", "ឆាប់", "ឈប់", "ជួយ", "រត់"]) or "shout" in role or "fight" in role
@@ -253,7 +263,6 @@ class DubbingPipeline:
 
                     seg["assigned_pitch"] = assigned_pitch
                     seg["assigned_rate"] = assigned_rate
-                    prev_voice = voice_id
 
                 male_cnt = sum(1 for s in translated_segments if "Piseth" in s.get("assigned_voice", ""))
                 female_cnt = sum(1 for s in translated_segments if "Sreymom" in s.get("assigned_voice", ""))

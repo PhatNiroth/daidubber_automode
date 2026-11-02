@@ -9,6 +9,8 @@ DEFAULT_CONFIG = {
     "whisper_model": "large-v3-turbo",
     "device": "cuda",
     "vocal_mode": "separate_bgm",  # 'separate_bgm' (Keep BGM/FX, Remove Chinese Voice), 'mute_original' (Mute all original audio)
+    "separation_engine": "roformer",  # 'roformer' (BS-Roformer AI - លុបចម្រៀងស្អាត១០០% មិនដាច់ៗ), 'demucs' (Demucs)
+    "roformer_model": "model_bs_roformer_ep_317_sdr_12.9755.ckpt",
     "demucs_model": "htdemucs",
     "khmer_voice": "auto",  # 'km-KH-PisethNeural' (ប្រុស), 'km-KH-SreymomNeural' (ស្រី), 'auto' (ឆ្លាស់គ្នា)
     "voice_speed": "+10%",

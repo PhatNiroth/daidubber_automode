@@ -13,15 +13,23 @@ from utils.logger import logger
 
 setup_cuda_dlls()
 
-# GPU Semaphore to ensure only 1 Demucs separation runs on GPU at a time to prevent VRAM Out-of-Memory
+# GPU Semaphore to ensure only 1 separation runs on GPU at a time to prevent VRAM Out-of-Memory
 _gpu_separation_lock = threading.Semaphore(1)
 
+# Module level cache for BS-Roformer to avoid re-loading weights for every video
+_cached_roformer_separator = None
+_cached_roformer_model_name = None
+
 class VocalSeparator:
-    """Separates vocal track from background music (BGM) and sound effects using Demucs on CUDA GPU."""
+    """Separates vocal track from background music (BGM) and sound effects using BS-Roformer AI or Demucs on CUDA GPU."""
     
-    def __init__(self, model_name: str = "htdemucs", device: str = "cuda"):
-        self.model_name = model_name
+    def __init__(self, engine: str = "roformer", model_name: Optional[str] = None, device: str = "cuda"):
+        self.engine = engine.lower() if engine else "roformer"
         self.device = device
+        if self.engine == "roformer":
+            self.model_name = model_name or "model_bs_roformer_ep_317_sdr_12.9755.ckpt"
+        else:
+            self.model_name = model_name or "htdemucs"
 
     def extract_audio_from_video(self, video_path: str, output_wav: str) -> bool:
         """Extract high quality stereo WAV audio from video using FFmpeg."""
@@ -157,9 +165,88 @@ class VocalSeparator:
             logger.warning(f"⚠️ Clean Foley filtering failed ({e}), keeping original BGM.")
             return False
 
-    def separate_vocals(self, audio_wav: str, output_dir: str, clean_foley: bool = True) -> Tuple[Optional[str], Optional[str]]:
+    def separate_vocals(self, audio_wav: str, output_dir: str, clean_foley: bool = False) -> Tuple[Optional[str], Optional[str]]:
         """
-        Runs Demucs on NVIDIA CUDA GPU for clean vocal removal without noise.
+        Separates vocal track from background music and sound effects.
+        Uses BS-Roformer AI by default (gold standard vocal isolation, SDR > 12.9 dB)
+        with automatic fallback to Demucs if needed.
+        """
+        if self.engine == "roformer":
+            try:
+                v_path, b_path = self.separate_roformer(audio_wav, output_dir)
+                if v_path and b_path and os.path.exists(v_path) and os.path.exists(b_path):
+                    return v_path, b_path
+                logger.warning("⚠️ BS-Roformer output files missing, attempting Demucs fallback...")
+            except Exception as e:
+                logger.warning(f"⚠️ BS-Roformer separation failed ({e}), falling back to Demucs...")
+
+        return self.separate_demucs(audio_wav, output_dir, clean_foley=clean_foley)
+
+    def separate_roformer(self, audio_wav: str, output_dir: str) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Runs BS-Roformer AI on NVIDIA CUDA GPU for clean studio-grade vocal removal.
+        Isolates singing and speech cleanly without any choppy or stuttering audio.
+        """
+        global _cached_roformer_separator, _cached_roformer_model_name
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        with _gpu_separation_lock:
+            models_dir = os.environ.get("AUDIO_SEPARATOR_MODELS_DIR", "D:/tmp/audio-separator-models")
+            if not os.path.exists(models_dir):
+                os.makedirs(models_dir, exist_ok=True)
+
+            from audio_separator.separator import Separator
+
+            if _cached_roformer_separator is None or _cached_roformer_model_name != self.model_name:
+                logger.info(f"⚡ កំពុងផ្ទុកម៉ូដែល BS-Roformer AI ({self.model_name}) លើ GPU {self.device}...")
+                sep = Separator(
+                    output_dir=str(output_path),
+                    output_format="WAV",
+                    model_file_dir=models_dir,
+                    use_autocast=False
+                )
+                sep.load_model(self.model_name)
+                _cached_roformer_separator = sep
+                _cached_roformer_model_name = self.model_name
+            else:
+                sep = _cached_roformer_separator
+                sep.output_dir = str(output_path)
+                if hasattr(sep, "model_instance") and sep.model_instance:
+                    sep.model_instance.output_dir = str(output_path)
+
+            logger.info("⚡ កំពុងបំបែកសំឡេងចម្រៀង/និយាយ និង BGM/Sound FX ដោយ BS-Roformer AI (គុណភាព Studio)...")
+            output_files = sep.separate(
+                str(audio_wav),
+                custom_output_names={"Vocals": "vocals", "Instrumental": "no_vocals"}
+            )
+
+            cand_v = output_path / "vocals.wav"
+            cand_nv = output_path / "no_vocals.wav"
+            vocals_path = str(cand_v) if cand_v.exists() else None
+            no_vocals_path = str(cand_nv) if cand_nv.exists() else None
+
+            if not (vocals_path and no_vocals_path) and output_files:
+                for f in output_files:
+                    p = Path(f) if Path(f).is_absolute() else output_path / f
+                    if not p.exists():
+                        continue
+                    stem_l = p.stem.lower()
+                    if "vocals" in stem_l and "no_vocals" not in stem_l and "instrumental" not in stem_l:
+                        vocals_path = str(p)
+                    elif "no_vocals" in stem_l or "instrumental" in stem_l:
+                        no_vocals_path = str(p)
+
+            if vocals_path and no_vocals_path:
+                logger.success("✅ បានបំបែកសំឡេង BGM & Foley FX តាមរយៈ BS-Roformer AI ស្អាតល្អ ១០០% (គ្មានសំឡេងចម្រៀង/និយាយចិន និងមិនដាច់ៗ)!")
+                return str(vocals_path), str(no_vocals_path)
+            else:
+                logger.error(f"❌ រកមិនឃើញឯកសារបំបែកសំឡេងរបស់ Roformer ក្នុង {output_path}")
+                return None, None
+
+    def separate_demucs(self, audio_wav: str, output_dir: str, clean_foley: bool = False) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Runs Demucs on NVIDIA CUDA GPU for vocal removal.
         Uses GPU semaphore lock to prevent CUDA Out-of-Memory during multi-video parallel dubbing.
         """
         output_path = Path(output_dir)

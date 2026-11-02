@@ -523,14 +523,19 @@ Follow these professional cinema dubbing rules strictly:
 
 8. 100% TRANSLATION COMPLETENESS: Translate every segment ID provided. Never omit or leave empty.
 
-9. CHARACTER ROLE & VOICE MODULATION (ការកំណត់តួអង្គ និងចរិតសម្លេង):
-   - For every line, identify the speaker's "gender" ("male" | "female"), "role", and recommended Edge-TTS "pitch":
-     * "hero" (Male lead, protagonist, handsome youth): gender="male", role="hero", pitch="+0Hz"
-     * "elder" / "father" / "master" (Old master, senior, father, king, commanding villain): gender="male", role="elder", pitch="-3Hz"
-     * "boy" / "servant" / "comic" (Junior disciple, boy, servant, comedic sidekick): gender="male", role="boy", pitch="+2Hz"
-     * "female_lead" (Young heroine, sweet woman): gender="female", role="female_lead", pitch="+0Hz"
-     * "crying_girl" / "child" (Distressed captive, crying girl, child): gender="female", role="crying_girl", pitch="+3Hz"
-     * "older_female" / "mother" (Stern mother-in-law, older lady, empress): gender="female", role="older_female", pitch="-3Hz"
+9. CHARACTER TRACKING & SPEAKER GENDER CONSISTENCY (ការកំណត់តួអង្គ និងសម្លេងប្រុស/ស្រីឱ្យត្រឹមត្រូវ ១០០%):
+   - For every line, track the character identity and assign:
+     * "character": Speaker identity or role in scene (e.g. "三皇子/Prince", "太监/Eunuch", "女主/Heroine", "掌门/Master", "刺客/Assassin")
+     * "gender": strictly "male" or "female"
+     * "role": e.g. "hero", "elder", "father", "master", "villain", "boy", "female_lead", "mother", "crying_girl"
+     * "pitch": Edge-TTS recommended pitch ("+0Hz", "-3Hz", "+2Hz", etc.)
+   - CRITICAL CHINESE DRAMA GENDER RULES:
+     * Men shouting, screaming, fighting or enraged (e.g., "杀！", "去死吧！", "纳命来！") are 100% "male" (DO NOT confuse shouting/high volume with female voice!).
+     * Women speaking calmly, whispering, pleading, or crying softly are 100% "female" (DO NOT confuse low pitch with male voice!).
+     * Pronoun / Title anchors:
+       - MALE: 朕, 孤, 本王, 卑职, 末将, 杂家, 老奴, 本座, 老夫, 老子, 兄弟, 公子, 兄台, 贤弟, 皇上, 殿下, 师傅, 师弟, 贫僧, 小人
+       - FEMALE: 本宫, 哀家, 臣妾, 妾身, 奴婢, 民女, 小女, 姐姐, 妹妹, 姑娘, 夫人, 娘娘, 母后, 丫鬟, 师妹
+     * Character Consistency Lock: The same character MUST NOT flip genders between dialogue turns in the same scene.
 
 FORMAT: Return strictly a valid JSON array matching the exact segment IDs provided.
 Input JSON:
@@ -542,9 +547,9 @@ Input JSON:
 
 Output JSON:
 [
-  {"id": 1, "km_text": "ឯងអាងអីមកគ្រប់គ្រងអញ?!", "gender": "male", "role": "hero", "pitch": "+0Hz"},
-  {"id": 2, "km_text": "ជួយខ្ញុំផង!", "gender": "female", "role": "crying_girl", "pitch": "+3Hz"},
-  {"id": 3, "km_text": "ចាំមើលថាអ្នកណាហ៊ានមកជួយឯង!", "gender": "male", "role": "elder", "pitch": "-3Hz"}
+  {"id": 1, "km_text": "ឯងអាងអីមកគ្រប់គ្រងអញ?!", "character": "萧楚河", "gender": "male", "role": "hero", "pitch": "+0Hz"},
+  {"id": 2, "km_text": "ជួយខ្ញុំផង!", "character": "司空千落", "gender": "female", "role": "crying_girl", "pitch": "+3Hz"},
+  {"id": 3, "km_text": "ចាំមើលថាអ្នកណាហ៊ានមកជួយឯង!", "character": "反派长老", "gender": "male", "role": "elder", "pitch": "-3Hz"}
 ]
 """
 
@@ -586,7 +591,7 @@ CRITICAL 4-POINT AUDIT CHECKLIST:
 FORMAT:
 Return strictly a valid JSON array matching the exact segment IDs provided:
 [
-  {"id": 1, "km_text": "...", "gender": "male"|"female", "role": "...", "pitch": "..."},
+  {"id": 1, "km_text": "...", "character": "...", "gender": "male"|"female", "role": "...", "pitch": "..."},
   ...
 ]
 """
@@ -769,6 +774,8 @@ Audit each line, verify screen action alignment, tighten duration fit, ensure co
                             if new_km and not contains_chinese(new_km):
                                 new_km = refine_khmer_dialogue(new_km, genre=self.drama_genre, duration=float(s.get("duration", 0.0)))
                                 s_pol["km_text"] = new_km
+                                if rev_item.get("character"):
+                                    s_pol["gemini_character"] = rev_item["character"]
                                 if rev_item.get("gender"):
                                     s_pol["gemini_gender"] = rev_item["gender"]
                                 if rev_item.get("role"):
@@ -948,6 +955,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                     # Create mapping by ID
                     mapping = {}
                     gender_mapping = {}
+                    character_mapping = {}
                     role_mapping = {}
                     pitch_mapping = {}
                     if isinstance(data, list):
@@ -955,6 +963,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                             if isinstance(item, dict) and "id" in item:
                                 mapping[item["id"]] = item.get("km_text", "")
                                 gender_mapping[item["id"]] = item.get("gender", "")
+                                character_mapping[item["id"]] = item.get("character", "")
                                 role_mapping[item["id"]] = item.get("role", "")
                                 pitch_mapping[item["id"]] = item.get("pitch", "+0Hz")
 
@@ -972,6 +981,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
 
                         s_copy["km_text"] = km_val
                         s_copy["gemini_gender"] = gender_mapping.get(s["id"], "")
+                        s_copy["gemini_character"] = character_mapping.get(s["id"], "")
                         s_copy["gemini_role"] = role_mapping.get(s["id"], "")
                         s_copy["voice_pitch"] = pitch_mapping.get(s["id"], "+0Hz")
                         batch_draft.append(s_copy)

@@ -142,6 +142,22 @@ class SettingsDialog(ctk.CTkToplevel):
         )
         self.whisper_model_cb.pack(fill="x", padx=15, pady=(0, 8))
 
+        # Separation Engine
+        sep_lbl = ctk.CTkLabel(sec2, text="ម៉ូដែលបំបែកសំឡេងចម្រៀង/BGM (Vocal Separation):", font=FONT_BODY, text_color=TEXT_SECONDARY)
+        sep_lbl.pack(anchor="w", padx=15, pady=(2, 2))
+
+        self.sep_engine_cb = ctk.CTkComboBox(
+            sec2,
+            values=[
+                "roformer (BS-Roformer AI - លុបចម្រៀងស្អាត១០០% មិនដាច់ៗ ⭐)",
+                "demucs (Demucs AI)"
+            ],
+            fg_color=INPUT_BG,
+            border_color=INPUT_BORDER,
+            text_color=TEXT_PRIMARY
+        )
+        self.sep_engine_cb.pack(fill="x", padx=15, pady=(0, 8))
+
         # Device selection (CUDA / CPU)
         dev_lbl = ctk.CTkLabel(sec2, text="Hardware Acceleration (ដំណើរការលើ):", font=FONT_BODY, text_color=TEXT_SECONDARY)
         dev_lbl.pack(anchor="w", padx=15, pady=(2, 2))
@@ -298,6 +314,11 @@ class SettingsDialog(ctk.CTkToplevel):
         self.key_entry.insert(0, cfg.get("gemini_api_key", ""))
         self.gemini_model_cb.set(cfg.get("gemini_model", "gemini-2.5-flash"))
         self.whisper_model_cb.set(cfg.get("whisper_model", "base"))
+        engine = cfg.get("separation_engine", "roformer")
+        if engine == "demucs":
+            self.sep_engine_cb.set("demucs (Demucs AI)")
+        else:
+            self.sep_engine_cb.set("roformer (BS-Roformer AI - លុបចម្រៀងស្អាត១០០% មិនដាច់ៗ ⭐)")
         self.device_cb.set(cfg.get("device", "cuda"))
         
         self.stretch_switch.select() if cfg.get("enable_time_stretch", True) else self.stretch_switch.deselect()
@@ -389,6 +410,9 @@ class SettingsDialog(ctk.CTkToplevel):
         self.config_manager.set("gemini_api_key", key)
         self.config_manager.set("gemini_model", gemini_model)
         self.config_manager.set("whisper_model", whisper_model)
+        sep_choice = self.sep_engine_cb.get()
+        separation_engine = "demucs" if "demucs" in sep_choice.lower() else "roformer"
+        self.config_manager.set("separation_engine", separation_engine)
         self.config_manager.set("device", device)
         self.config_manager.set("enable_time_stretch", enable_stretch)
         self.config_manager.set("max_stretch_ratio", max_stretch)
