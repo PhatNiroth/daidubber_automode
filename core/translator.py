@@ -438,6 +438,45 @@ Follow these professional cinema dubbing rules strictly:
      * 废掉武功: "កម្ទេចក្បាច់គុណចោល", "ផ្តាច់សរសៃយុទ្ធគុណ"!
      * 暗器 / 毒针: "អាវុធសម្ងាត់", "ម្ជុលពិស"!
 
+3.2 PROPER NOUNS: CHARACTER NAMES, LOCATIONS, SECTS & CLANS (ក្បួនបញ្ចេញសំឡេងឈ្មោះមនុស្ស ទីតាំង វត្ត បក្ស និងត្រកូល):
+   - ALL CHINESE PERSONAL NAMES (ឈ្មោះមនុស្ស / ឈ្មោះតួអង្គ) MUST BE TRANSLITERATED PHONETICALLY into authentic Cambodian cinema dubbing sounds. NEVER translate the literal dictionary meaning of personal names!
+     * 萧炎 (Xiao Yan) -> "ស៊ាវយាន" (NEVER translate as "ភ្លើងស្ងៀម")
+     * 林动 (Lin Dong) -> "លីនតុង" (NEVER translate as "ព្រៃកម្រើក")
+     * 郭靖 (Guo Jing) -> "គួជិន" / "គួជាំង"
+     * 张无忌 (Zhang Wuji) -> "ចាងអ៊ូជី"
+     * 东方不败 (Dongfang Bubai) -> "តុងហ្វាងប៉ូពាយ" / "ដុងហ្វាងពូប៉ៃ"
+     * 林辰 (Lin Chen) -> "លីនចិន"
+     * 叶凡 (Ye Fan) -> "យេហ្វាន"
+     * 陆雪琪 (Lu Xueqi) -> "លូស្វៀឈី"
+     * 白素贞 (Bai Suzhen) -> "ប៉ាយស៊ូចិន"
+   - SURNAME TITLES & HONORIFICS (ងារ ឋានៈ និងការហៅតាមត្រកូល):
+     * 顾总 / 张总 / 李总 -> "លោកប្រធានគូ" / "លោកប្រធានចាង" / "លោកប្រធានលី"
+     * 萧少爷 / 顾少 -> "អ្នកប្រុសស៊ាវ" / "អ្នកប្រុសគូ"
+     * 林小姐 / 苏小姐 -> "កញ្ញាលីន" / "អ្នកនាងស៊ូ"
+     * 张夫人 / 顾太太 -> "លោកស្រីចាង" / "អ្នកស្រីគូ"
+     * 萧家 / 顾家 / 林家 -> "ត្រកូលស៊ាវ" / "ត្រកូលគូ" / "ត្រកូលលីន"
+   - PLACES, REALMS, SECTS & TEMPLES (ឈ្មោះទីតាំង នគរ បក្ស និងវត្ត):
+     * 少林 / 少林寺 -> "វត្តសៅលិញ" / "វត្តសៅលីន"
+     * 武当 / 武当派 -> "បក្សវូតាំង"
+     * 峨眉 / 峨眉派 -> "បក្សង៉ោម៉ី"
+     * 华山 -> "បក្សហ័រឡាន / ភ្នំហ័រ"
+     * 昆仑 -> "ភ្នំឃុនលុន / បក្សឃុនលុន"
+     * 云岚宗 -> "បក្សយុនឡាន / និកាយយុនឡាន"
+     * 中原 -> "ដែនដីចុងយួន"
+     * 江南 -> "ដែនដីជាំងណាន"
+     * 江东 -> "ដែនដីជាំងទុង" (ក្រុមហ៊ុនជាំងទុង ក្នុងសម័យទំនើប)
+     * 长安 / 洛阳 / 京城 -> "រាជធានីឆាងអាន" / "ឡួយ៉ាង" / "រាជធានី"
+     * 大夏 / 大秦 / 大唐 -> "នគរមហាសៀ" / "នគរមហាស៊ីន" / "នគរមហាតាង"
+   - DISCIPLESHIP & KINSHIP HIERARCHY (ឋានានុក្រមសិស្សគណ និងញាតិសន្តាន):
+     * 师兄 -> "រៀមច្បង" / "សិស្សច្បង" (Senior male disciple - NEVER "សិស្សប្អូន"!)
+     * 师弟 -> "សិស្សប្អូន" / "អាប្អូន" (Junior male disciple - NEVER "បងប្រុស"!)
+     * 师姐 -> "សិស្សច្បងស្រី" / "រៀមច្បងស្រី"
+     * 师妹 -> "សិស្សប្អូនស្រី"
+     * 师父 / 师尊 -> "លោកគ្រូ" / "អ្នកមានគុណជាគ្រូ"
+     * 徒儿 / 徒弟 -> "កូនសិស្ស" / "សិស្សរបស់គ្រូ"
+     * 掌门 / 宗主 -> "មេបក្ស" / "លោកម្ចាស់បក្ស"
+     * 义父 / 义子 -> "ឪពុកធម៌" / "កូនធម៌"
+
 4. SENSE-FOR-SENSE CINEMA RE-CREATION, ZERO LITERAL TRANSLATION (ប្រែសម្រួលន័យទាំងស្រុង ហាមដាច់ខាតការបកប្រែពាក្យមួយៗ):
    - Never translate Chinese sentence structures or idioms literally. Rewrite the whole meaning into natural, expressive spoken Khmer dialogue:
      * 不见棺材不落泪 -> "មិនទាន់ឃើញក្តារមឈូស មិនទាន់ស្រក់ទឹកភ្នែកមែនទេ?!"
