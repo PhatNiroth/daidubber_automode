@@ -165,8 +165,8 @@ class DubbingPipeline:
                 model_size=cfg.get("whisper_model", "large-v3-turbo"),
                 device=cfg.get("device", "cuda")
             )
-            # Transcribe original extracted audio directly to guarantee 100% dialogue capture (zero lost speech)
-            asr_input_audio = extracted_wav
+            # Transcribe clean separated vocals when available to eliminate background music & noise interference
+            asr_input_audio = vocals_wav if (vocals_wav and os.path.exists(vocals_wav) and os.path.getsize(vocals_wav) > 5000) else extracted_wav
             segments = transcriber.transcribe(
                 asr_input_audio,
                 genre=cfg.get("drama_genre", "wuxia")

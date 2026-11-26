@@ -180,14 +180,25 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
 
     # Priority 2: Genre-specific wuxia / ancient replacements
     g = (genre or "wuxia").lower()
-    if g in ["wuxia", "palace", "auto", ""]:
-        # In martial arts/ancient context, "លោកគ្រូពេទ្យ" addressing a male fighter/master is almost always misheard 大侠/大夫/大师
+    if g in ["wuxia", "palace"]:
+        # In martial arts/ancient context only, replace misheard doctor homophones:
+        t = re.sub(r'(?:លោក)?គ្រូពេទ្យ\s*(?=(?:មេត្តា|សង្គ្រោះ|លើកលែង|កុំសម្លាប់|ទុកជីវិត))', 'អ្នកក្លាហាន ', t)
         t = re.sub(r'លោកគ្រូពេទ្យ', 'លោកម្ចាស់', t)
         t = re.sub(r'គ្រូពេទ្យដ៏អស្ចារ្យ', 'អ្នកក្លាហានដ៏អស្ចារ្យ', t)
         t = re.sub(r'ព្យាបាលជំងឺ', 'ព្យាបាលរបួសក្នុង', t)
         t = re.sub(r'ថ្នាំពេទ្យ', 'ថ្នាំទិព្វ', t)
         t = re.sub(r'សរសៃឈាមបេះដូង', 'សរសៃយុទ្ធគុណ', t)
         t = re.sub(r'ចលនាឈាមរត់', 'លំហូរខ្យល់ប្រាណ', t)
+        # Ancient ASR homophones (ONLY apply to ancient/martial arts dramas):
+        t = re.sub(r'ផ្សារហ៊ុន', 'សមរភូមិ', t)
+        t = re.sub(r'ទីផ្សារភាគហ៊ុន', 'សមរភូមិ', t)
+        t = re.sub(r'ចុះបញ្ជីផ្សារហ៊ុន', 'ចេញទៅស្លាប់', t)
+        t = re.sub(r'ចូលទីផ្សារ', 'ចេញមុខ', t)
+        t = re.sub(r'អភិបាលក្រុង', 'ចៅហ្វាយ', t)
+        t = re.sub(r'ប្រព័ន្ធផ្សព្វផ្សាយបរទេស', 'អ្នកទោសនិរទេស', t)
+        t = re.sub(r'កុលសម្ព័ន្ធ', 'ភ្នាក់ងារយាមគុក', t)
+        t = re.sub(r'វត្ត\s*(?:Zhenfu|ហ្សេនហ៊្វូ)', 'សាលាយុត្តិធម៌ Zhenfusi', t)
+        t = re.sub(r'តំបន់ទឹក', 'ត្បូងគ្រីស្តាល់', t)
 
     # Common mechanical written phrases -> natural spoken cinema dubbing
     replacements = [
@@ -213,18 +224,8 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
         (r'ប្រសិនបើអ្នក', 'បើឯង'),
         (r'ប្រសិនបើ', 'បើ'),
         # Common Chinese drama homophone/mistranslation fixes
-        (r'ផ្សារហ៊ុន', 'សមរភូមិ'),
-        (r'ទីផ្សារភាគហ៊ុន', 'សមរភូមិ'),
-        (r'ចុះបញ្ជីផ្សារហ៊ុន', 'ចេញទៅស្លាប់'),
-        (r'ចូលទីផ្សារ', 'ចេញមុខ'),
-        (r'អភិបាលក្រុង', 'ចៅហ្វាយ'),
-        (r'ប្រព័ន្ធផ្សព្វផ្សាយបរទេស', 'អ្នកទោសនិរទេស'),
-        (r'កុលសម្ព័ន្ធ', 'ភ្នាក់ងារយាមគុក'),
-        (r'វត្ត Zhenfu', 'សាលាយុត្តិធម៌ Zhenfusi'),
-        (r'វត្តហ្សេនហ៊្វូ', 'សាលាយុត្តិធម៌ Zhenfusi'),
         (r'ខ្ញុំនិយាយជ្រូកនិងឆ្កែ', 'ចាត់ទុកខ្ញុំដូចជាសត្វធាតុ'),
         (r'ការចងចាំស្ថិតលើព្រះ', 'ខ្ញុំបានទ្រាំទ្រកន្លងមក'),
-        (r'តំបន់ទឹក', 'ត្បូងគ្រីស្តាល់'),
         (r'បន្ទប់កញ្ចប់', 'បន្ទប់ VIP'),
         (r'កញ្ចប់បន្ទប់', 'បន្ទប់ VIP'),
         (r'សៀវភៅគណនី', 'សៀវភៅបញ្ជី'),
@@ -325,9 +326,19 @@ def get_genre_prompt(genre: str = "wuxia") -> str:
     g = (genre or "wuxia").lower()
     if g == "modern":
         return """=== DRAMA GENRE CONTEXT: 🏙️ MODERN URBAN & ROMANCE (រឿងសម័យទំនើប ស្នេហា គ្រួសារ មហាសេដ្ឋី) ===
-- Setting is a modern city, business corporations, urban lifestyle, modern romance, and family drama.
-- Use natural modern conversational Khmer: "លោកប្រធាន", "អ្នកគ្រប់គ្រង", "លោកស្រី", "ចៅហ្វាយ", "កញ្ញា", "បង/អូន".
-- Medical terms (doctor, nurse, hospital) are permitted when characters are in a hospital/clinic context."""
+- Setting is a modern city, corporate business, urban lifestyle, romance, modern family, and crime drama.
+- ABSOLUTE RULE FOR MODERN DRAMAS: Characters are modern people (CEOs, executives, employees, doctors, nurses, police, lovers, family members).
+  * STRICTLY FORBIDDEN: DO NOT use ancient martial arts or wuxia terms! DO NOT use "អ្នកក្លាហាន", "សិស្សច្បង", "ធាតុភ្លើង", "កម្លាំងធាតុ", "ថ្នាំទិព្វ", "សមរភូមិ"!
+  * 顾总 / 张总 / 李总 -> "លោកប្រធានគូ" / "លោកប្រធានចាង" / "លោកប្រធានលី" (President / CEO / Boss)
+  * 经理 / 主管 -> "អ្នកគ្រប់គ្រង" / "ប្រធានផ្នែក"
+  * 医生 / 护士 / 医院 -> "លោកគ្រូពេទ្យ / គ្រូពេទ្យ", "គិលានុបដ្ឋាយិកា / អ្នកគ្រូពេទ្យ", "មន្ទីរពេទ្យ" (YES, this is a real modern hospital/doctor!)
+  * 叫救护车 / 快叫医生 -> "ឆាប់ហៅឡានពេទ្យមក!", "ឆាប់តាមគ្រូពេទ្យមក!"
+  * 上市 / 股票 / 股市 -> "ចុះបញ្ជីផ្សារហ៊ុន / បើកលក់ភាគហ៊ុន", "ផ្សារហ៊ុន / ភាគហ៊ុន" (Modern finance/corporate IPO!)
+  * 市长 -> "អភិបាលក្រុង" / "លោកចៅហ្វាយក្រុង"
+  * 吃药 / 喝药 -> "លេបថ្នាំ" (Modern medicine)
+  * 婆婆 / 公公 -> "ម្តាយក្មេក" / "ឪពុកក្មេក"
+  * 闺蜜 / 兄弟 -> "មិត្តសម្លាញ់" / "មិត្តភក្តិ"
+  * Couples / Lovers: natural modern "បង / អូន", "ឯង / ខ្ញុំ"."""
     elif g == "palace":
         return """=== DRAMA GENRE CONTEXT: 👑 IMPERIAL COURT & PALACE (រឿងរាជវាំង នយោបាយ អំណាច) ===
 - Setting is ancient imperial palace, dynasty emperors, empresses, court ministers, royal guards, and political intrigue.
@@ -341,12 +352,13 @@ def get_genre_prompt(genre: str = "wuxia") -> str:
     elif g == "auto":
         return """=== DRAMA GENRE CONTEXT: 🎭 AUTO-DETECT GENRE ===
 - Inspect dialogue context and attached visual scene keyframes to determine whether the setting is ancient martial arts (wuxia), imperial court, or modern urban.
+- If characters wear modern business suits, dresses, drive cars, or use smartphones: STRICTLY apply Modern Urban rules (Doctors are "លោកគ្រូពេទ្យ", Corporate bosses are "លោកប្រធាន")!
 - If characters wear ancient costumes, carry swords, fight, fly, or use internal qi: STRICTLY apply Martial Arts rules (Warriors are "អ្នកក្លាហាន", NEVER "គ្រូពេទ្យ"!)."""
     else:  # "wuxia" default
         return """=== DRAMA GENRE CONTEXT: ⚔️ MARTIAL ARTS & CULTIVATION (រឿងបុរាណ យុទ្ធសិល្ប៍ ហោះហើរ វាយកាប់ដាវ កម្លាំងធាតុ) ===
 - Setting is the Martial Arts World (武林 / 江湖 / 修仙 - Jianghu & Cultivation).
 - CRITICAL: Characters are martial artists, swordsmen, sect leaders, disciples, and cultivators (អ្នកក្លាហាន, អ្នកហាត់ក្បាច់គុណ, មេបក្ស, សិស្សច្បង, លោកម្ចាស់).
-- UNDER NO CIRCUMSTANCES should characters be referred to as medical doctors ("គ្រូពេទ្យ" or "ពេទ្យ")!
+- UNDER NO CIRCUMSTANCES should fighters be referred to as medical doctors ("គ្រូពេទ្យ" or "ពេទ្យ")!
 - Common vocatives: 大侠/大师 -> "អ្នកក្លាហាន" / "លោកម្ចាស់"; 饶命 -> "មេត្តាលើកលែងជីវិតផង"; 疗伤 -> "ព្យាបាលរបួសក្នុង"; 丹药 -> "ថ្នាំទិព្វ"; 经脉 -> "សរសៃយុទ្ធគុណ"."""
 
 DEFAULT_SYSTEM_PROMPT = """You are a master Cambodian film dubbing director and senior Khmer localization specialist for Chinese television dramas, series, and movies (អ្នកដឹកនាំរឿង និងអ្នកសម្រួលពាក្យសម្ដីបញ្ចូលសំឡេងរឿងភាគចិនទៅជាភាសាខ្មែរអាជីព).

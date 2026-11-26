@@ -19,7 +19,9 @@ CHANGELOG = [
             "Complete Elimination of gTTS: eradicated all third-party robotic Google TTS fallbacks to guarantee zero voice intrusions",
             "Zero-Failure Edge-TTS Protocol: locked pitch parameter to standard +0Hz to eliminate Microsoft Azure SSML audio rejection",
             "Cross-Gender Voice Lock: eliminated gender flipping and hardcoded voice overrides on retries",
-            "Safe Cadence Modulation: character role differentiation safely achieved via subtle rate variation (+0% to +3%)"
+            "World-Setting & Genre Separation: eliminated wuxia vocabulary bleeding into modern urban dramas, ensuring 100% accurate modern corporate, medical, and romance dialogues",
+            "Clean Vocal ASR Pipeline: Whisper transcribes clean separated vocals (BS-Roformer) to eliminate loud BGM, fighting noise, and song lyrics interference",
+            "Semantic Fidelity & Intent Audit: Pass 2 Reviewer strictly audits true dramatic intent, idiomatic accuracy, and contextual dialogue cohesion"
         ]
     },
     {
