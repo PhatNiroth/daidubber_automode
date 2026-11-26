@@ -528,7 +528,7 @@ Follow these professional cinema dubbing rules strictly:
      * "character": Speaker identity or role in scene (e.g. "三皇子/Prince", "太监/Eunuch", "女主/Heroine", "掌门/Master", "刺客/Assassin")
      * "gender": strictly "male" or "female"
      * "role": e.g. "hero", "elder", "father", "master", "villain", "boy", "female_lead", "mother", "crying_girl"
-     * "pitch": Edge-TTS recommended pitch ("+0Hz", "-3Hz", "+2Hz", etc.)
+     * "pitch": Strictly "+0Hz" (Standard neural pitch for Microsoft Edge-TTS)
    - CRITICAL CHINESE DRAMA GENDER RULES:
      * Men shouting, screaming, fighting or enraged (e.g., "杀！", "去死吧！", "纳命来！") are 100% "male" (DO NOT confuse shouting/high volume with female voice!).
      * Women speaking calmly, whispering, pleading, or crying softly are 100% "female" (DO NOT confuse low pitch with male voice!).
@@ -548,8 +548,8 @@ Input JSON:
 Output JSON:
 [
   {"id": 1, "km_text": "ឯងអាងអីមកគ្រប់គ្រងអញ?!", "character": "萧楚河", "gender": "male", "role": "hero", "pitch": "+0Hz"},
-  {"id": 2, "km_text": "ជួយខ្ញុំផង!", "character": "司空千落", "gender": "female", "role": "crying_girl", "pitch": "+3Hz"},
-  {"id": 3, "km_text": "ចាំមើលថាអ្នកណាហ៊ានមកជួយឯង!", "character": "反派长老", "gender": "male", "role": "elder", "pitch": "-3Hz"}
+  {"id": 2, "km_text": "ជួយខ្ញុំផង!", "character": "司空千落", "gender": "female", "role": "crying_girl", "pitch": "+0Hz"},
+  {"id": 3, "km_text": "ចាំមើលថាអ្នកណាហ៊ានមកជួយឯង!", "character": "反派长老", "gender": "male", "role": "elder", "pitch": "+0Hz"}
 ]
 """
 
@@ -780,8 +780,7 @@ Audit each line, verify screen action alignment, tighten duration fit, ensure co
                                     s_pol["gemini_gender"] = rev_item["gender"]
                                 if rev_item.get("role"):
                                     s_pol["gemini_role"] = rev_item["role"]
-                                if rev_item.get("pitch"):
-                                    s_pol["voice_pitch"] = rev_item["pitch"]
+                                s_pol["voice_pitch"] = "+0Hz"
                         polished_segments.append(s_pol)
                     
                     logger.success("✨ [Pass 2/2] ផ្ទៀងផ្ទាត់ និងសម្រិតសម្រាំងអត្ថបទកុនរួចរាល់ (Action & Timing Audited)!")
@@ -983,7 +982,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                         s_copy["gemini_gender"] = gender_mapping.get(s["id"], "")
                         s_copy["gemini_character"] = character_mapping.get(s["id"], "")
                         s_copy["gemini_role"] = role_mapping.get(s["id"], "")
-                        s_copy["voice_pitch"] = pitch_mapping.get(s["id"], "+0Hz")
+                        s_copy["voice_pitch"] = "+0Hz"
                         batch_draft.append(s_copy)
 
                     # [Pass 2/2] Two-Pass AI Cinema Review & Audit Engine

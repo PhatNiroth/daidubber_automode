@@ -41,21 +41,38 @@ class KhmerTTSEngine:
         pitch: Optional[str] = None,
         rate: Optional[str] = None
     ) -> bool:
-        """Synthesize a single text sentence into an audio file with retry, voice fallback, and semaphore limit."""
-        pitch_val = pitch or self.pitch
-        rate_val = rate or self.speed
+        """
+        Synthesize a single text sentence into an audio file strictly using Microsoft Neural Edge-TTS.
+        Guarantees 100% voice purity:
+        - Male lines are strictly km-KH-PisethNeural.
+        - Female lines are strictly km-KH-SreymomNeural.
+        - ZERO third-party / robot voice fallbacks (NO gTTS).
+        - Pitch is strictly locked to +0Hz (Microsoft Azure SSML for Khmer rejects non-zero pitch).
+        """
         target_voice = voice_name if voice_name in ["km-KH-PisethNeural", "km-KH-SreymomNeural"] else "km-KH-PisethNeural"
-        alt_voice = "km-KH-SreymomNeural" if "Piseth" in target_voice else "km-KH-PisethNeural"
+        safe_pitch = "+0Hz"
+
+        # Clean text: remove any non-Khmer foreign characters or control codes
+        clean_text = text.strip()
+        clean_text = re.sub(r'[\u4e00-\u9fff\u0e00-\u0e7f\x00-\x1f\x7f-\x9f]', '', clean_text).strip()
+        if not clean_text:
+            clean_text = "បាទ" if "Piseth" in target_voice else "ចាស"
+
+        # Microsoft Azure Khmer Neural voices strictly require pitch="+0Hz" and rate="+0%".
+        # Any non-zero pitch or rate causes "No audio was received" from the Azure backend.
+        safe_pitch = "+0Hz"
+        safe_rate = "+0%"
 
         async with sem:
-            # 3 standard attempts with exponential backoff and pitch/voice fallback
+            # 4 resilient retry attempts strictly using target_voice with +0Hz pitch and +0% rate
             attempts = [
-                (target_voice, pitch_val, rate_val),
-                (target_voice, "+0Hz", rate_val),  # retry with standard pitch in case custom pitch failed
-                (alt_voice, "+0Hz", "+0%")         # retry with opposite voice if server had voice-specific error
+                (target_voice, safe_pitch, safe_rate, clean_text),
+                (target_voice, safe_pitch, safe_rate, clean_text),
+                (target_voice, safe_pitch, safe_rate, clean_text),
+                (target_voice, safe_pitch, safe_rate, re.sub(r'[^\u1780-\u17ff\s\.,!?]', '', clean_text).strip() or ("បាទ" if "Piseth" in target_voice else "ចាស"))
             ]
 
-            for attempt_idx, (v_name, p_val, r_val) in enumerate(attempts):
+            for attempt_idx, (v_name, p_val, r_val, txt_to_speak) in enumerate(attempts):
                 try:
                     # Clean up any lingering 0-byte or corrupted file
                     if os.path.exists(output_path):
@@ -65,7 +82,7 @@ class KhmerTTSEngine:
                             pass
 
                     communicate = edge_tts.Communicate(
-                        text=text,
+                        text=txt_to_speak,
                         voice=v_name,
                         rate=r_val,
                         pitch=p_val
@@ -75,36 +92,8 @@ class KhmerTTSEngine:
                         return True
                 except Exception as e:
                     if attempt_idx == len(attempts) - 1:
-                        logger.error(f"TTS error on '{text[:20]}...': {e}")
-                    await asyncio.sleep(0.5 * (attempt_idx + 1))
-
-            # Emergency Fallback 1: Edge-TTS with simplified text
-            try:
-                emergency_text = re.sub(r'[^\u1780-\u17ff\s\.,!?]', '', text).strip() or "បាទ"
-                communicate = edge_tts.Communicate(
-                    text=emergency_text,
-                    voice="km-KH-PisethNeural",
-                    rate="+0%",
-                    pitch="+0Hz"
-                )
-                await communicate.save(output_path)
-                if os.path.exists(output_path) and os.path.getsize(output_path) > 100:
-                    logger.warning(f"⚠️ បានប្រើប្រាស់ Emergency TTS fallback លើឃ្លា #{Path(output_path).stem}: '{emergency_text}'")
-                    return True
-            except Exception:
-                pass
-
-            # Emergency Fallback 2: Google TTS (gTTS) - 100% reliable HTTP fallback for Khmer
-            try:
-                from gtts import gTTS
-                clean_km = re.sub(r'[^\u1780-\u17ff\s\.,!?]', '', text).strip() or "បាទ"
-                tts_fb = gTTS(text=clean_km, lang='km')
-                tts_fb.save(output_path)
-                if os.path.exists(output_path) and os.path.getsize(output_path) > 100:
-                    logger.warning(f"⚠️ បានប្រើប្រាស់ Google TTS fallback លើឃ្លា #{Path(output_path).stem}: '{clean_km[:20]}'")
-                    return True
-            except Exception as e_fb:
-                logger.error(f"❌ Google TTS fallback failed: {e_fb}")
+                        logger.error(f"TTS error on [{v_name}] '{txt_to_speak[:25]}...': {e}")
+                    await asyncio.sleep(0.4 * (attempt_idx + 1))
 
             return False
 
@@ -150,18 +139,9 @@ class KhmerTTSEngine:
             else:
                 voice_to_use = self.voice
 
-            seg_pitch = seg.get("assigned_pitch") or seg.get("voice_pitch") or self.pitch
-            
-            # Combine global speed setting with role-based cadence
-            base_speed_str = self.speed or "+0%"
-            seg_rate_str = seg.get("assigned_rate", "+0%") or "+0%"
-            try:
-                base_val = int(base_speed_str.replace("%", "").replace("+", "") or 0)
-                role_val = int(seg_rate_str.replace("%", "").replace("+", "") or 0)
-                comb_val = max(-15, min(25, base_val + role_val))
-                seg_rate = f"{comb_val:+d}%"
-            except Exception:
-                seg_rate = base_speed_str
+            # Microsoft Azure Khmer Neural voices strictly require pitch="+0Hz" and rate="+0%"
+            seg_pitch = "+0Hz"
+            seg_rate = "+0%"
 
             task = self._synthesize_single(km_text, audio_file, voice_to_use, sem, pitch=seg_pitch, rate=seg_rate)
             tasks.append(task)
@@ -173,14 +153,21 @@ class KhmerTTSEngine:
         final_segments = []
         for (seg, audio_file, voice_used, pitch_used, rate_used), success in zip(indexed_segments, results_flags):
             if not (success and os.path.exists(audio_file) and os.path.getsize(audio_file) > 100):
-                # Ensure 100% presence: generate fallback audio with gTTS
+                # Pure Edge-TTS Sequential Recovery (strictly voice_used, pitch=+0Hz, rate=+0%)
+                logger.warning(f"⚠️ កំពុងព្យាយាមបង្កើតសំឡេងឡើងវិញដោយប្រុងប្រយ័ត្នសម្រាប់ប្រយោគ #{seg.get('id')} ({voice_used})...")
                 try:
-                    from gtts import gTTS
-                    clean_km = re.sub(r'[^\u1780-\u17ff\s\.,!?]', '', seg.get("km_text", "")).strip() or "បាទ"
-                    gTTS(text=clean_km, lang='km').save(audio_file)
-                    logger.warning(f"⚠️ ជួយសង្គ្រោះសំឡេងដោយជោគជ័យ (gTTS Recovery) សម្រាប់ប្រយោគ #{seg.get('id')}")
+                    await asyncio.sleep(0.5)
+                    retry_sem = asyncio.Semaphore(1)
+                    await self._synthesize_single(
+                        text=seg.get("km_text", ""),
+                        output_path=audio_file,
+                        voice_name=voice_used,
+                        sem=retry_sem,
+                        pitch="+0Hz",
+                        rate="+0%"
+                    )
                 except Exception as e_rec:
-                    logger.error(f"Fallback generation error for #{seg.get('id')}: {e_rec}")
+                    logger.error(f"Pure Edge-TTS recovery error for #{seg.get('id')}: {e_rec}")
 
             if os.path.exists(audio_file) and os.path.getsize(audio_file) > 50:
                 actual_dur = get_media_duration(audio_file)
@@ -188,7 +175,7 @@ class KhmerTTSEngine:
                 seg_res["audio_file"] = audio_file
                 seg_res["actual_duration"] = actual_dur
                 seg_res["voice_used"] = voice_used
-                seg_res["pitch_used"] = pitch_used
+                seg_res["pitch_used"] = "+0Hz"
                 seg_res["rate_used"] = rate_used
                 final_segments.append(seg_res)
             else:

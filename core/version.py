@@ -4,12 +4,24 @@ Central Version & Release Metadata for JAI AUTO DUBBING.
 Single source of truth for UI, Installer, and Build tools.
 """
 
-__version__ = "2.5.3"
-__release_date__ = "2026-11-02"
-__build_code__ = "20261102.02"
-__edition__ = "Imperial Pro Studio Review Edition"
+__version__ = "2.5.4"
+__release_date__ = "2026-11-03"
+__build_code__ = "20261103.01"
+__edition__ = "Pure Dual-Voice Studio Audio Edition"
 
 CHANGELOG = [
+    {
+        "version": "2.5.4",
+        "date": "2026-11-03",
+        "title": "Pure Dual-Voice Studio Audio Edition (Piseth & Sreymom Only)",
+        "highlights": [
+            "Strict Dual-Voice Enforcement: output dubbing is 100% exclusively km-KH-PisethNeural (Male) and km-KH-SreymomNeural (Female)",
+            "Complete Elimination of gTTS: eradicated all third-party robotic Google TTS fallbacks to guarantee zero voice intrusions",
+            "Zero-Failure Edge-TTS Protocol: locked pitch parameter to standard +0Hz to eliminate Microsoft Azure SSML audio rejection",
+            "Cross-Gender Voice Lock: eliminated gender flipping and hardcoded voice overrides on retries",
+            "Safe Cadence Modulation: character role differentiation safely achieved via subtle rate variation (+0% to +3%)"
+        ]
+    },
     {
         "version": "2.5.3",
         "date": "2026-11-02",

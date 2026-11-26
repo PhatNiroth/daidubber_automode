@@ -220,49 +220,13 @@ class DubbingPipeline:
                 # Smooth isolated blips and enforce character consistency lock across scene
                 translated_segments = GenderDetector.smooth_speaker_consistency(translated_segments)
 
-                # Character Role Voice Tuning:
-                # Dynamic character differentiation without artificial vocoder distortion:
+                # Character Voice Calibration:
+                # Microsoft Azure Khmer Neural voices (Piseth & Sreymom) strictly require pitch="+0Hz" and rate="+0%".
+                # Custom pitch or rate causes immediate server rejection ("No audio was received").
+                # Subtitle duration fitting is handled cleanly by AudioSync via FFmpeg atempo.
                 for seg in translated_segments:
-                    voice_id = seg.get("assigned_voice", "km-KH-PisethNeural")
-                    role = (seg.get("gemini_role") or "").lower()
-                    km_txt = seg.get("km_text", "")
-                    is_urgent = any(w in km_txt for w in ["!", "ឆាប់", "ឈប់", "ជួយ", "រត់"]) or "shout" in role or "fight" in role
-
-                    if "Piseth" in voice_id:
-                        if any(k in role for k in ["elder", "master", "father", "old", "emperor", "king", "villain"]):
-                            assigned_pitch = "-3Hz"
-                            assigned_rate = "-4%"
-                        elif any(k in role for k in ["boy", "child", "servant", "comic", "junior"]):
-                            assigned_pitch = "+2Hz"
-                            assigned_rate = "+5%"
-                        elif is_urgent:
-                            assigned_pitch = "+1Hz"
-                            assigned_rate = "+6%"
-                        else:
-                            # Hero / Male Protagonist / Standard Male
-                            assigned_pitch = "+0Hz"
-                            assigned_rate = "+0%"
-                    else:
-                        # Sreymom (Female)
-                        if any(k in role for k in ["mother", "older_female", "empress", "queen"]):
-                            assigned_pitch = "-3Hz"
-                            assigned_rate = "-4%"
-                        elif any(k in role for k in ["girl", "child", "cute"]):
-                            assigned_pitch = "+3Hz"
-                            assigned_rate = "+5%"
-                        elif any(k in role for k in ["crying", "sad", "plead"]):
-                            assigned_pitch = "+2Hz"
-                            assigned_rate = "-4%"
-                        elif is_urgent:
-                            assigned_pitch = "+1Hz"
-                            assigned_rate = "+5%"
-                        else:
-                            # Heroine / Maiden / Standard Female
-                            assigned_pitch = "+0Hz"
-                            assigned_rate = "+0%"
-
-                    seg["assigned_pitch"] = assigned_pitch
-                    seg["assigned_rate"] = assigned_rate
+                    seg["assigned_pitch"] = "+0Hz"
+                    seg["assigned_rate"] = "+0%"
 
                 male_cnt = sum(1 for s in translated_segments if "Piseth" in s.get("assigned_voice", ""))
                 female_cnt = sum(1 for s in translated_segments if "Sreymom" in s.get("assigned_voice", ""))
