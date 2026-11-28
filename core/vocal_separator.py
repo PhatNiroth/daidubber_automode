@@ -4,7 +4,7 @@ import subprocess
 import shutil
 import threading
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 import numpy as np
 import scipy.io.wavfile as wavfile
 import scipy.signal as signal
@@ -23,8 +23,8 @@ _cached_roformer_model_name = None
 class VocalSeparator:
     """Separates vocal track from background music (BGM) and sound effects using BS-Roformer AI or Demucs on CUDA GPU."""
     
-    def __init__(self, engine: str = "roformer", model_name: Optional[str] = None, device: str = "cuda"):
-        self.engine = engine.lower() if engine else "roformer"
+    def __init__(self, engine: str = "demucs", model_name: Optional[str] = None, device: str = "cuda"):
+        self.engine = engine.lower() if engine else "demucs"
         self.device = device
         if self.engine == "roformer":
             self.model_name = model_name or "model_bs_roformer_ep_317_sdr_12.9755.ckpt"
@@ -165,24 +165,24 @@ class VocalSeparator:
             logger.warning(f"⚠️ Clean Foley filtering failed ({e}), keeping original BGM.")
             return False
 
-    def separate_vocals(self, audio_wav: str, output_dir: str, clean_foley: bool = False) -> Tuple[Optional[str], Optional[str]]:
+    def separate_vocals(self, audio_wav: str, output_dir: str, clean_foley: bool = False, progress_callback: Optional[Callable[[float, str], None]] = None) -> Tuple[Optional[str], Optional[str]]:
         """
         Separates vocal track from background music and sound effects.
-        Uses BS-Roformer AI by default (gold standard vocal isolation, SDR > 12.9 dB)
+        Defaults to high-speed Demucs AI (~40s per video) or BS-Roformer AI if configured,
         with automatic fallback to Demucs if needed.
         """
         if self.engine == "roformer":
             try:
-                v_path, b_path = self.separate_roformer(audio_wav, output_dir)
+                v_path, b_path = self.separate_roformer(audio_wav, output_dir, progress_callback=progress_callback)
                 if v_path and b_path and os.path.exists(v_path) and os.path.exists(b_path):
                     return v_path, b_path
                 logger.warning("⚠️ BS-Roformer output files missing, attempting Demucs fallback...")
             except Exception as e:
                 logger.warning(f"⚠️ BS-Roformer separation failed ({e}), falling back to Demucs...")
 
-        return self.separate_demucs(audio_wav, output_dir, clean_foley=clean_foley)
+        return self.separate_demucs(audio_wav, output_dir, clean_foley=clean_foley, progress_callback=progress_callback)
 
-    def separate_roformer(self, audio_wav: str, output_dir: str) -> Tuple[Optional[str], Optional[str]]:
+    def separate_roformer(self, audio_wav: str, output_dir: str, progress_callback: Optional[Callable[[float, str], None]] = None) -> Tuple[Optional[str], Optional[str]]:
         """
         Runs BS-Roformer AI on NVIDIA CUDA GPU for clean studio-grade vocal removal.
         Isolates singing and speech cleanly without any choppy or stuttering audio.
@@ -204,7 +204,8 @@ class VocalSeparator:
                     output_dir=str(output_path),
                     output_format="WAV",
                     model_file_dir=models_dir,
-                    use_autocast=False
+                    use_autocast=True,
+                    arch_specific_params={"batch_size": 4, "overlap": 2}
                 )
                 sep.load_model(self.model_name)
                 _cached_roformer_separator = sep
@@ -214,6 +215,11 @@ class VocalSeparator:
                 sep.output_dir = str(output_path)
                 if hasattr(sep, "model_instance") and sep.model_instance:
                     sep.model_instance.output_dir = str(output_path)
+                    sep.model_instance.batch_size = 4
+                    sep.model_instance.overlap = 2
+
+            if progress_callback:
+                progress_callback(20.0, "BS-Roformer: Processing audio...")
 
             logger.info("⚡ កំពុងបំបែកសំឡេងចម្រៀង/និយាយ និង BGM/Sound FX ដោយ BS-Roformer AI (គុណភាព Studio)...")
             output_files = sep.separate(
@@ -238,17 +244,20 @@ class VocalSeparator:
                         no_vocals_path = str(p)
 
             if vocals_path and no_vocals_path:
+                if progress_callback:
+                    progress_callback(100.0, "BS-Roformer: 100%")
                 logger.success("✅ បានបំបែកសំឡេង BGM & Foley FX តាមរយៈ BS-Roformer AI ស្អាតល្អ ១០០% (គ្មានសំឡេងចម្រៀង/និយាយចិន និងមិនដាច់ៗ)!")
                 return str(vocals_path), str(no_vocals_path)
             else:
                 logger.error(f"❌ រកមិនឃើញឯកសារបំបែកសំឡេងរបស់ Roformer ក្នុង {output_path}")
                 return None, None
 
-    def separate_demucs(self, audio_wav: str, output_dir: str, clean_foley: bool = False) -> Tuple[Optional[str], Optional[str]]:
+    def separate_demucs(self, audio_wav: str, output_dir: str, clean_foley: bool = False, progress_callback: Optional[Callable[[float, str], None]] = None) -> Tuple[Optional[str], Optional[str]]:
         """
         Runs Demucs on NVIDIA CUDA GPU for vocal removal.
         Uses GPU semaphore lock to prevent CUDA Out-of-Memory during multi-video parallel dubbing.
         """
+        import re
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         
@@ -281,6 +290,7 @@ class VocalSeparator:
                 process = subprocess.Popen(
                     cmd,
                     env=env,
+                    stdin=subprocess.DEVNULL,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
                     text=True,
@@ -289,11 +299,23 @@ class VocalSeparator:
                 )
 
                 output_lines = []
+                last_reported_pct = -1
                 for line in process.stdout:
                     line_str = line.strip()
                     output_lines.append(line_str)
                     if "%" in line_str or "Separating" in line_str:
                         logger.info(f"Demucs: {line_str}")
+                    
+                    # Real-time percentage tracking to update GUI
+                    m = re.search(r'(\d+)%', line_str)
+                    if m and progress_callback:
+                        pct = int(m.group(1))
+                        if pct != last_reported_pct and (pct - last_reported_pct >= 5 or pct == 100):
+                            last_reported_pct = pct
+                            try:
+                                progress_callback(float(pct), f"Demucs: {pct}%")
+                            except Exception:
+                                pass
 
                 process.wait()
 
@@ -309,22 +331,43 @@ class VocalSeparator:
                             "-o", str(output_path),
                             str(audio_wav)
                         ]
-                        sub_res = subprocess.run(
+                        sub_proc = subprocess.Popen(
                             fallback_cmd,
                             env=env,
+                            stdin=subprocess.DEVNULL,
                             stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
                             text=True,
                             encoding="utf-8",
                             errors="replace"
                         )
-                        if sub_res.returncode != 0:
-                            logger.error(f"Demucs CPU fallback error: {sub_res.stderr}")
+                        for line in sub_proc.stdout:
+                            line_str = line.strip()
+                            m = re.search(r'(\d+)%', line_str)
+                            if m and progress_callback:
+                                pct = int(m.group(1))
+                                if pct != last_reported_pct and (pct - last_reported_pct >= 5 or pct == 100):
+                                    last_reported_pct = pct
+                                    try:
+                                        progress_callback(float(pct), f"Demucs CPU: {pct}%")
+                                    except Exception:
+                                        pass
+                        sub_proc.wait()
+                        if sub_proc.returncode != 0:
+                            logger.error(f"Demucs CPU fallback error: code {sub_proc.returncode}")
                             return None, None
 
                 model_folder = output_path / demucs_model / audio_name
                 vocals_path = model_folder / "vocals.wav"
                 no_vocals_path = model_folder / "no_vocals.wav"
+
+                # Robust fallback recursive search if folder structure differs
+                if not (vocals_path.exists() and no_vocals_path.exists()):
+                    found_v = list(output_path.rglob("vocals.wav"))
+                    found_nv = list(output_path.rglob("no_vocals.wav"))
+                    if found_v and found_nv:
+                        vocals_path = found_v[0]
+                        no_vocals_path = found_nv[0]
 
                 if vocals_path.exists() and no_vocals_path.exists():
                     final_bgm_path = str(no_vocals_path)
@@ -334,10 +377,12 @@ class VocalSeparator:
                             final_bgm_path = clean_bgm_path
                             logger.success("✅ បានលុបបទចម្រៀងចិន និងរក្សាទុកសំឡេងកាប់ដាវ សំឡេងសេះ សំឡេងវាយគ្នា (Foley FX) ១០០%!")
 
+                    if progress_callback:
+                        progress_callback(100.0, "Demucs: 100%")
                     logger.success("បំបែកសំឡេង BGM/Sound FX រួចរាល់ស្អាតល្អ គ្មានសំឡេងរំខាន!")
                     return str(vocals_path), final_bgm_path
                 else:
-                    logger.error(f"Missing demucs output files in {model_folder}")
+                    logger.error(f"Missing demucs output files in {output_path}")
                     return None, None
 
             except Exception as e:

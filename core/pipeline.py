@@ -106,9 +106,10 @@ class DubbingPipeline:
         temp_dir = create_temp_dir() / job_tag
         temp_dir.mkdir(parents=True, exist_ok=True)
 
-        def report(stage_idx: int, percent: float, text: str):
+        def report(stage_idx: int, percent: float, text: str, log_step: bool = True):
             stage_name = PIPELINE_STAGES[stage_idx] if stage_idx < len(PIPELINE_STAGES) else "Export"
-            logger.step(stage_idx + 1, len(PIPELINE_STAGES), f"{video_file.name}: {text}")
+            if log_step:
+                logger.step(stage_idx + 1, len(PIPELINE_STAGES), f"{video_file.name}: {text}")
             if progress_callback:
                 progress_callback(video_index, total_videos, stage_idx, stage_name, percent, text)
 
@@ -127,7 +128,7 @@ class DubbingPipeline:
             if self.is_cancelled: return False
             report(1, 0.15, "កំពុងស្រង់សំឡេងចេញពីវីដេអូ...")
             extracted_wav = str(temp_dir / "original_audio.wav")
-            sep_engine = cfg.get("separation_engine", "roformer")
+            sep_engine = cfg.get("separation_engine", "demucs")
             sep_model = cfg.get("roformer_model", "model_bs_roformer_ep_317_sdr_12.9755.ckpt") if sep_engine == "roformer" else cfg.get("demucs_model", "htdemucs")
             separator = VocalSeparator(engine=sep_engine, model_name=sep_model, device=cfg.get("device", "cuda"))
             if not separator.extract_audio_from_video(str(video_file), extracted_wav):
@@ -143,9 +144,20 @@ class DubbingPipeline:
             bgm_wav = None
 
             if vocal_mode in ["separate_bgm", "clean_foley"]:
-                engine_title = "BS-Roformer AI" if separator.engine == "roformer" else "Demucs AI"
-                report(2, 0.30, f"កំពុងបំបែកសំឡេងចម្រៀង/និយាយ និងរក្សាទុក BGM & Sound FX ({engine_title})...")
-                v_path, b_path = separator.separate_vocals(extracted_wav, str(temp_dir / "separation"), clean_foley=False)
+                engine_title = "Demucs AI" if separator.engine == "demucs" else "BS-Roformer AI"
+                report(2, 0.18, f"កំពុងបំបែកសំឡេងចម្រៀង/និយាយ និងរក្សាទុក BGM & Sound FX ({engine_title})...")
+
+                def sep_sub_progress(p_val: float, status_msg: str):
+                    # Smoothly scale separation percentage 0..100% to pipeline range 0.18..0.48
+                    scaled_pct = 0.18 + (p_val / 100.0) * 0.30
+                    report(2, scaled_pct, f"កំពុងបំបែកសំឡេង BGM ({engine_title}): {int(p_val)}%", log_step=False)
+
+                v_path, b_path = separator.separate_vocals(
+                    extracted_wav,
+                    str(temp_dir / "separation"),
+                    clean_foley=False,
+                    progress_callback=sep_sub_progress
+                )
                 if v_path and b_path and os.path.exists(b_path):
                     vocals_wav = v_path
                     bgm_wav = b_path

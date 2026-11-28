@@ -149,8 +149,8 @@ class SettingsDialog(ctk.CTkToplevel):
         self.sep_engine_cb = ctk.CTkComboBox(
             sec2,
             values=[
-                "roformer (BS-Roformer AI - លុបចម្រៀងស្អាត១០០% មិនដាច់ៗ ⭐)",
-                "demucs (Demucs AI)"
+                "demucs (Demucs AI - ល្បឿនលឿន ~40s/video ⭐)",
+                "roformer (BS-Roformer AI - ស៊ីម៉ោងយូរ ~25mn/video)"
             ],
             fg_color=INPUT_BG,
             border_color=INPUT_BORDER,
@@ -314,11 +314,11 @@ class SettingsDialog(ctk.CTkToplevel):
         self.key_entry.insert(0, cfg.get("gemini_api_key", ""))
         self.gemini_model_cb.set(cfg.get("gemini_model", "gemini-2.5-flash"))
         self.whisper_model_cb.set(cfg.get("whisper_model", "base"))
-        engine = cfg.get("separation_engine", "roformer")
-        if engine == "demucs":
-            self.sep_engine_cb.set("demucs (Demucs AI)")
+        engine = cfg.get("separation_engine", "demucs")
+        if engine == "roformer":
+            self.sep_engine_cb.set("roformer (BS-Roformer AI - ស៊ីម៉ោងយូរ ~25mn/video)")
         else:
-            self.sep_engine_cb.set("roformer (BS-Roformer AI - លុបចម្រៀងស្អាត១០០% មិនដាច់ៗ ⭐)")
+            self.sep_engine_cb.set("demucs (Demucs AI - ល្បឿនលឿន ~40s/video ⭐)")
         self.device_cb.set(cfg.get("device", "cuda"))
         
         self.stretch_switch.select() if cfg.get("enable_time_stretch", True) else self.stretch_switch.deselect()

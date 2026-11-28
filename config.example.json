@@ -5,6 +5,7 @@
     "whisper_model": "large-v3-turbo",
     "device": "cuda",
     "vocal_mode": "separate_bgm",
+    "separation_engine": "demucs",
     "demucs_model": "htdemucs",
     "khmer_voice": "auto",
     "voice_speed": "+0%",
