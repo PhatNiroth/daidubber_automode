@@ -136,8 +136,8 @@ def deduplicate_crowd_segments(segments: List[Dict[str, Any]], max_time_gap: flo
 
 def merge_short_adjacent_segments(
     segments: List[Dict[str, Any]],
-    max_gap: float = 0.45,
-    max_combined_dur: float = 4.2
+    max_gap: float = 0.65,
+    max_combined_dur: float = 4.8
 ) -> List[Dict[str, Any]]:
     """
     Carefully merges broken syllables and clauses within the same sentence (<= 0.35s gap)
@@ -400,7 +400,7 @@ class ChineseTranscriber:
                     })
 
             # Merge micro-fragments within same speech clause
-            cleaned_segments = merge_short_adjacent_segments(cleaned_segments, max_gap=0.45, max_combined_dur=4.2)
+            cleaned_segments = merge_short_adjacent_segments(cleaned_segments, max_gap=0.65, max_combined_dur=4.8)
 
             # Apply Smart Crowd & Repetitive Dialogue Deduplication Filter
             total_before = len(cleaned_segments)

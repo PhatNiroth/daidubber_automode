@@ -204,6 +204,15 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
     replacements = [
         # Questions & unnatural pronouns
         (r'តើអ្នកកំពុងធ្វើអ្វី', 'ឯងកំពុងធ្វើស្អីហ្នឹង'),
+        (r'តើអ្នកកំពុងនិយាយអំពីអ្វី', 'ឯងកំពុងនិយាយពីស្អីហ្នឹង'),
+        (r'តើឯងកំពុងនិយាយពីអ្វី', 'ឯងនិយាយពីស្អីហ្នឹង'),
+        (r'តើអ្នកចង់បានអ្វី', 'ឯងចង់បានស្អី'),
+        (r'តើឯងចង់បានអ្វី', 'ឯងចង់បានស្អី'),
+        (r'តើអ្នកចង់មានន័យយ៉ាងណា', 'ឯងចង់មានន័យថាម៉េច'),
+        (r'តើមានន័យយ៉ាងណា', 'មានន័យថាម៉េច'),
+        (r'តើអ្នកណាជាអ្នក', 'អ្នកណាជាអ្នក'),
+        (r'តើអ្នកណា', 'អ្នកណា'),
+        (r'តើឯងជាអ្នកណា', 'ឯងជាអ្នកណា'),
         (r'តើអ្នក', 'ឯង'),
         (r'តើឯង', 'ឯង'),
         (r'តើលោក', 'លោក'),
@@ -215,7 +224,10 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
         (r'តើវាជាអ្វី', 'វាជាស្អីហ្នឹង'),
         (r'តើនេះជាអ្វី', 'នេះជាស្អីហ្នឹង'),
         (r'តើអ្នកគិតថា\b', 'ឯងគិតថា'),
-        # Heavy written conjunctions
+        (r'តើអ្នកដឹងទេ', 'ឯងដឹងអត់'),
+        (r'តើអ្នកយល់ព្រមទេ', 'ឯងយល់ព្រមអត់'),
+        (r'តើឯងដឹងខ្លួនទេ', 'ឯងដឹងខ្លួនអត់'),
+        # Heavy written conjunctions -> natural spoken flow
         (r'ទោះបីជាយ៉ាងណាក៏ដោយ', 'ប៉ុន្តែ'),
         (r'ទោះជាយ៉ាងណាក៏ដោយ', 'ប៉ុន្តែ'),
         (r'លើសពីនេះទៅទៀត', 'ហើយម្យ៉ាងទៀត'),
@@ -223,6 +235,19 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
         (r'ដូច្នេះហើយ', 'អញ្ចឹងហើយ'),
         (r'ប្រសិនបើអ្នក', 'បើឯង'),
         (r'ប្រសិនបើ', 'បើ'),
+        # Polite & emotional spoken corrections
+        (r'សូមកុំបារម្ភ', 'កុំបារម្ភអី'),
+        (r'កុំមានការព្រួយបារម្ភ', 'កុំបារម្ភអី'),
+        (r'ខ្ញុំគិតថា', 'តាមខ្ញុំយល់'),
+        (r'មិនអាចទៅរួចទេ', 'មិនអាចទេ'),
+        (r'ខ្ញុំមិនអាចទទួលយកបានទេ', 'ខ្ញុំទទួលយកមិនបានទេ'),
+        (r'កុំធ្វើបែបនេះអី', 'កុំធ្វើចឹង'),
+        (r'ឆាប់និយាយមក', 'ឆាប់និយាយមកមើល៍'),
+        (r'កុំនិយាយច្រើន', 'កុំមាត់ច្រើន'),
+        (r'បិទមាត់របស់អ្នក', 'បិទមាត់ភ្លាម'),
+        (r'កុំមកប៉ះខ្ញុំ', 'កុំមកប៉ះពាល់ខ្ញុំ'),
+        (r'កុំមកប៉ះអញ', 'កុំមកប៉ះពាល់អញ'),
+        (r'ខ្ញុំស្បថថា', 'ខ្ញុំហ៊ានស្បថ'),
         # Common Chinese drama homophone/mistranslation fixes
         (r'ខ្ញុំនិយាយជ្រូកនិងឆ្កែ', 'ចាត់ទុកខ្ញុំដូចជាសត្វធាតុ'),
         (r'ការចងចាំស្ថិតលើព្រះ', 'ខ្ញុំបានទ្រាំទ្រកន្លងមក'),
@@ -243,7 +268,7 @@ def refine_khmer_dialogue(text: str, genre: str = "wuxia", duration: float = 0.0
         (r'យកសម្ដីនិយាយឲ្យច្បាស់', 'និយាយឲ្យច្បាស់មកមើល៍'),
         (r'យកលុយប្រគល់', 'ឆាប់ប្រគល់លុយមក'),
     ]
-    
+
     for pat, rep in replacements:
         t = re.sub(pat, rep, t)
 
@@ -550,18 +575,67 @@ Follow these professional cinema dubbing rules strictly:
      * Character Consistency Lock: The same character MUST NOT flip genders between dialogue turns in the same scene.
 
 FORMAT: Return strictly a valid JSON array matching the exact segment IDs provided.
+
+=== FEW-SHOT EXAMPLES OF AUTHENTIC MASTER CAMBODIAN CINEMA DUBBING ===
+
+Example 1: Action / Confrontation / Incomplete Fragments Connected into Flowing Thought:
 Input JSON:
 [
-  {"id": 1, "duration": 2.0, "text": "你凭什么管我？"},
-  {"id": 2, "duration": 1.5, "text": "救命啊！"},
-  {"id": 3, "duration": 2.2, "text": "我看谁敢来救你！"}
+  {"id": 1, "duration": 1.2, "text": "我不管你"},
+  {"id": 2, "duration": 1.4, "text": "用什么手段"},
+  {"id": 3, "duration": 2.0, "text": "必须把它给我拿下来！"},
+  {"id": 4, "duration": 1.5, "text": "你休想！"},
+  {"id": 5, "duration": 2.2, "text": "别怪我不客气！"}
 ]
-
 Output JSON:
 [
-  {"id": 1, "km_text": "ឯងអាងអីមកគ្រប់គ្រងអញ?!", "character": "萧楚河", "gender": "male", "role": "hero", "pitch": "+0Hz"},
-  {"id": 2, "km_text": "ជួយខ្ញុំផង!", "character": "司空千落", "gender": "female", "role": "crying_girl", "pitch": "+0Hz"},
-  {"id": 3, "km_text": "ចាំមើលថាអ្នកណាហ៊ានមកជួយឯង!", "character": "反派长老", "gender": "male", "role": "elder", "pitch": "+0Hz"}
+  {"id": 1, "km_text": "ទោះជាឯងត្រូវ...", "character": "ចៅហ្វាយឃោរឃៅ", "gender": "male", "role": "villain", "pitch": "+0Hz"},
+  {"id": 2, "km_text": "ប្រើវិធីអីក៏ដោយ...", "character": "ចៅហ្វាយឃោរឃៅ", "gender": "male", "role": "villain", "pitch": "+0Hz"},
+  {"id": 3, "km_text": "ត្រូវតែដណ្តើមយកវាឲ្យបាន!", "character": "ចៅហ្វាយឃោរឃៅ", "gender": "male", "role": "villain", "pitch": "+0Hz"},
+  {"id": 4, "km_text": "កុំយល់សប្តិឲ្យសោះ!", "character": "តួឯកប្រុស", "gender": "male", "role": "hero", "pitch": "+0Hz"},
+  {"id": 5, "km_text": "កុំបន្ទោសថាអញដៃដល់ឲ្យសោះ!", "character": "តួឯកប្រុស", "gender": "male", "role": "hero", "pitch": "+0Hz"}
+]
+
+Example 2: Romance / Married Couple (ប្តីប្រពន្ធ ប្រើ បង/អូន មិនមែន 'អ្នក/ខ្ញុំ' ឡើយ):
+Input JSON:
+[
+  {"id": 6, "duration": 2.0, "text": "我没事，你别担心。"},
+  {"id": 7, "duration": 1.8, "text": "怎么会没事？你的手都在流血！"},
+  {"id": 8, "duration": 2.2, "text": "只要你平安，我受点伤算什么。"}
+]
+Output JSON:
+[
+  {"id": 6, "km_text": "បងមិនអីទេ អូនកុំបារម្ភអី។", "character": "ស្វាមី/តួប្រុស", "gender": "male", "role": "hero", "pitch": "+0Hz"},
+  {"id": 7, "km_text": "ថាមិនអីយ៉ាងម៉េច? ដៃបងហូរឈាមឡើងជោគហើយហ្នឹង!", "character": "ភរិយា/តួស្រី", "gender": "female", "role": "female_lead", "pitch": "+0Hz"},
+  {"id": 8, "km_text": "ឲ្យតែអូនមានសុវត្ថិភាព របួសប៉ុណ្ណឹងមិនជាបញ្ហាសម្រាប់បងទេ។", "character": "ស្វាមី/តួប្រុស", "gender": "male", "role": "hero", "pitch": "+0Hz"}
+]
+
+Example 3: Martial Arts & ASR Phonetic Error Deduction (ឈុតក្បាច់គុណ និងកែសូរសៀង Whisper):
+Input JSON:
+[
+  {"id": 9, "duration": 2.1, "text": "大侠饶命！小的有眼不识泰山！"},
+  {"id": 10, "duration": 2.0, "text": "师兄，他的静脉已经断了。"},
+  {"id": 11, "duration": 2.3, "text": "快服下这颗回元丹，运功疗伤！"}
+]
+Output JSON:
+[
+  {"id": 9, "km_text": "អ្នកក្លាហាន មេត្តាលើកលែងជីវិតផង! ខ្ញុំពិតជាមានភ្នែកមើលមិនស្គាល់ភ្នំថាយសានមែន!", "character": "ចោរព្រៃ", "gender": "male", "role": "villain", "pitch": "+0Hz"},
+  {"id": 10, "km_text": "រៀមច្បង សរសៃយុទ្ធគុណរបស់គេត្រូវដាច់អស់ហើយ។", "character": "សិស្សប្អូនស្រី", "gender": "female", "role": "female_lead", "pitch": "+0Hz"},
+  {"id": 11, "km_text": "ឆាប់លេបថ្នាំទិព្វនេះភ្លាម ហើយសម្រួលខ្យល់ប្រាណព្យាបាលរបួសក្នុងទៅ!", "character": "សិស្សច្បង", "gender": "male", "role": "hero", "pitch": "+0Hz"}
+]
+
+Example 4: Modern Corporate & Urban Romance:
+Input JSON:
+[
+  {"id": 12, "duration": 2.0, "text": "顾总，这是今天的财务报表。"},
+  {"id": 13, "duration": 1.6, "text": "签了这份离婚协议，"},
+  {"id": 14, "duration": 1.8, "text": "公司股份分你一半。"}
+]
+Output JSON:
+[
+  {"id": 12, "km_text": "លោកប្រធានគូ នេះជារបាយការណ៍ហិរញ្ញវត្ថុថ្ងៃនេះ។", "character": "លេខា", "gender": "female", "role": "female_lead", "pitch": "+0Hz"},
+  {"id": 13, "km_text": "ស៊ីញ៉េលើកិច្ចសន្យាលែងលះនេះភ្លាមទៅ...", "character": "លោកប្រធានគូ", "gender": "male", "role": "hero", "pitch": "+0Hz"},
+  {"id": 14, "km_text": "ភាគហ៊ុនក្រុមហ៊ុនពាក់កណ្តាលនឹងបានទៅលើនាង។", "character": "លោកប្រធានគូ", "gender": "male", "role": "hero", "pitch": "+0Hz"}
 ]
 """
 
@@ -599,6 +673,22 @@ CRITICAL 4-POINT AUDIT CHECKLIST:
    - ABSOLUTELY FORBIDDEN: NEVER include Thai characters (\\u0E00-\\u0E7F) or Chinese characters!
    - Ban all robotic written bookish fillers ("តើអ្នក...", "ហេតុអ្វីបានជា...", "ទោះបីជាយ៉ាងណាក៏ដោយ...", "ដោយសារតែ...").
    - Personal names must be phonetically correct (e.g. 萧炎 -> ស៊ាវយាន, 郭靖 -> គួជិន, 张无忌 -> ចាងអ៊ូជី, 林辰 -> លីនចិន, 顾总 -> លោកប្រធានគូ).
+
+=== EXAMPLES OF CRITIQUE & POLISHING (គំរូនៃការផ្ទៀងផ្ទាត់ និងសម្រិតសម្រាំងអត្ថបទកុន) ===
+Critique 1 (Broken Fragmented Clauses -> Flowing Sentence):
+- Draft: [{"id": 1, "km_text": "ខ្ញុំមិនខ្វល់ពីអ្នកទេ"}, {"id": 2, "km_text": "ប្រើវិធីអ្វី"}, {"id": 3, "km_text": "ត្រូវតែយកវាចុះមកឲ្យខ្ញុំ"}]
+- Critique: Incoherent, robotic word-for-word translation. Needs smooth continuity.
+- Polished: [{"id": 1, "km_text": "ទោះជាឯងត្រូវ..."}, {"id": 2, "km_text": "ប្រើវិធីអីក៏ដោយ..."}, {"id": 3, "km_text": "ត្រូវតែដណ្តើមយកវាឲ្យបាន!"}]
+
+Critique 2 (Doctor Homophone in Wuxia Duel -> Warrior Authenticity):
+- Draft: [{"id": 9, "km_text": "លោកគ្រូពេទ្យលើកលែងជីវិតខ្ញុំផង!"}]
+- Critique: Fatal error! Combat begging addresses a warrior/hero, not a hospital physician.
+- Polished: [{"id": 9, "km_text": "អ្នកក្លាហាន មេត្តាលើកលែងជីវិតផង!"}]
+
+Critique 3 (Robot Bookish Pronoun -> Emotional Spouses):
+- Draft: [{"id": 6, "km_text": "ខ្ញុំមិនអីទេ អ្នកកុំបារម្ភអី"}, {"id": 7, "km_text": "ហេតុអ្វីបានជាអ្នកមិនអី? ដៃរបស់អ្នកហូរឈាម"}]
+- Critique: Husband and wife must never address each other as 'អ្នក / ខ្ញុំ'!
+- Polished: [{"id": 6, "km_text": "បងមិនអីទេ អូនកុំបារម្ភអី。"}, {"id": 7, "km_text": "ថាមិនអីយ៉ាងម៉េច? ដៃបងហូរឈាមឡើងជោគហើយហ្នឹង!"}]
 
 FORMAT:
 Return strictly a valid JSON array matching the exact segment IDs provided:
@@ -719,6 +809,7 @@ class GeminiTranslator:
     def review_and_audit_batch(
         self,
         batch_segments: List[Dict[str, Any]],
+        scene_images: Optional[List[Any]] = None,
         scene_img: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
@@ -755,14 +846,21 @@ class GeminiTranslator:
 
 Audit each line, verify screen action alignment, tighten duration fit, ensure consistent pronouns, and return the polished final JSON:"""
 
-            payload = [review_prompt, scene_img] if scene_img is not None else review_prompt
+            imgs = scene_images if scene_images else ([scene_img] if scene_img is not None else [])
+            payload = [review_prompt] + imgs if imgs else review_prompt
             
             # Use active model (e.g. gemini-3.5-flash / gemini-3.5-flash-lite)
             model = genai.GenerativeModel(
                 model_name=self.model_name,
                 generation_config={"response_mime_type": "application/json"}
             )
-            response = model.generate_content(payload, request_options={"timeout": 15})
+            try:
+                response = model.generate_content(payload, request_options={"timeout": 20})
+            except Exception as r_e:
+                if imgs:
+                    response = model.generate_content(review_prompt, request_options={"timeout": 20})
+                else:
+                    raise r_e
             
             if response and response.text:
                 raw_text = response.text.strip()
@@ -849,25 +947,33 @@ Audit each line, verify screen action alignment, tighten duration fit, ensure co
             transcript_lines = [f"[{s['id']}] {s.get('text', '').strip()}" for s in batch]
             transcript_block = "\n".join(transcript_lines)
 
-            # Extract 1 lightweight keyframe snapshot at batch midpoint if video_path is provided
-            scene_img = None
+            # Extract lightweight keyframe snapshot(s) across scene for visual context if video_path is provided
+            scene_images = []
             if video_path and os.path.exists(video_path):
                 try:
                     batch_start = float(batch[0].get("start", 0.0))
                     batch_end = float(batch[-1].get("end", batch_start + 2.0))
-                    mid_t = (batch_start + batch_end) / 2.0
-                    scene_img = extract_scene_keyframe(video_path, mid_t)
+                    dur_span = max(0.1, batch_end - batch_start)
+                    t1 = batch_start + dur_span * 0.25
+                    img1 = extract_scene_keyframe(video_path, t1)
+                    if img1 is not None:
+                        scene_images.append(img1)
+                    if dur_span > 5.0:
+                        t2 = batch_start + dur_span * 0.75
+                        img2 = extract_scene_keyframe(video_path, t2)
+                        if img2 is not None:
+                            scene_images.append(img2)
                 except Exception:
-                    scene_img = None
+                    scene_images = []
 
             visual_note = ""
-            if scene_img is not None:
+            if scene_images:
                 visual_note = (
-                    "\n=== VISUAL SCENE KEYFRAME ATTACHED ===\n"
-                    "A real visual camera snapshot of this exact scene from the video is attached as an image.\n"
+                    f"\n=== VISUAL SCENE KEYFRAME(S) ATTACHED ({len(scene_images)} snapshots) ===\n"
+                    "Real visual camera snapshot(s) of this exact scene from the video are attached as images.\n"
                     "Carefully inspect the character's physical gestures, facial expression, body posture, actions "
                     "(e.g. slapping, punching, struggling, fleeing, kneeling, signing paper, drinking), setting, and costume "
-                    "in the image to make sure your spoken Khmer dubbing matches the physical reality happening on screen!\n"
+                    "in the image(s) to make sure your spoken Khmer dubbing matches the physical reality happening on screen!\n"
                 )
 
             success = False
@@ -906,13 +1012,18 @@ Audit each line, verify screen action alignment, tighten duration fit, ensure co
                                     system_instruction=full_system_prompt,
                                     generation_config={"response_mime_type": "application/json"}
                                 )
-                                scene_prompt = f"""=== FULL SCENE DIALOGUE SCRIPT (សូមអានសាច់រឿងសន្ទនាទាំងមូលនេះជាមុនសិន ដើម្បីយល់ពីដំណើររឿង) ===
+                                scene_prompt = f"""=== FULL SCENE DIALOGUE SCRIPT (សូមអានដំណើររឿងសន្ទនាទាំងមូលនេះជាមុនសិន) ===
 {transcript_block}
 {visual_note}
 === TIMING SEGMENTS TO DUB (បកប្រែសម្រួលបញ្ចូលសំឡេងតាមកាលវេលា) ===
 {json.dumps(prompt_input, ensure_ascii=False, indent=2)}
 
-Translate this scene into natural, continuous spoken Khmer cinema dubbing following the master dubbing principles:"""
+INSTRUCTIONS FOR MASTER CINEMA LOCALIZATION:
+1. STEP 1 (ASR & Homophone Error Recovery): Whisper may have misheard Chinese characters (e.g. 顾总 as 故障, 经脉 as 静脉, 视我如猪狗 as 是我说猪狗, 镇抚司 as 振服寺, 大侠 as 大夫). Understand the TRUE DRAMA MEANING before translating.
+2. STEP 2 (Inter-Segment Continuity): If consecutive segments belong to ONE continuous sentence or thought, connect them seamlessly (e.g. line 1: "ទោះជាឯងត្រូវ...", line 2: "ប្រើវិធីអីក៏ដោយ...", line 3: "ត្រូវតែដណ្តើមយកវាឲ្យបាន!"). Never output disjointed Google-translate fragments.
+3. STEP 3 (Spoken Cinema Khmer): Translate sense-for-sense into natural, emotional, expressive Cambodian film dubbing dialog that actors can speak smoothly. Keep lovers strictly as 'បង / អូន', enemies as 'ឯង / អញ'.
+
+Return strictly the JSON array of translated segments:"""
                             except Exception:
                                 model = genai.GenerativeModel(
                                     model_name=try_m,
@@ -920,19 +1031,24 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing follow
                                 )
                                 scene_prompt = f"""{full_system_prompt}
 
-=== FULL SCENE DIALOGUE SCRIPT (សូមអានសាច់រឿងសន្ទនាទាំងមូលនេះជាមុនសិន ដើម្បីយល់ពីដំណើររឿង) ===
+=== FULL SCENE DIALOGUE SCRIPT (សូមអានដំណើររឿងសន្ទនាទាំងមូលនេះជាមុនសិន) ===
 {transcript_block}
 {visual_note}
 === TIMING SEGMENTS TO DUB (បកប្រែសម្រួលបញ្ចូលសំឡេងតាមកាលវេលា) ===
 {json.dumps(prompt_input, ensure_ascii=False, indent=2)}
 
-Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
+INSTRUCTIONS FOR MASTER CINEMA LOCALIZATION:
+1. STEP 1 (ASR & Homophone Error Recovery): Whisper may have misheard Chinese characters (e.g. 顾总 as 故障, 经脉 as 静脉, 视我如猪狗 as 是我说猪狗, 镇抚司 as 振服寺, 大侠 as 大夫). Understand the TRUE DRAMA MEANING before translating.
+2. STEP 2 (Inter-Segment Continuity): If consecutive segments belong to ONE continuous sentence or thought, connect them seamlessly (e.g. line 1: "ទោះជាឯងត្រូវ...", line 2: "ប្រើវិធីអីក៏ដោយ...", line 3: "ត្រូវតែដណ្តើមយកវាឲ្យបាន!"). Never output disjointed Google-translate fragments.
+3. STEP 3 (Spoken Cinema Khmer): Translate sense-for-sense into natural, emotional, expressive Cambodian film dubbing dialog that actors can speak smoothly. Keep lovers strictly as 'បង / អូន', enemies as 'ឯង / អញ'.
 
-                            payload = [scene_prompt, scene_img] if scene_img is not None else scene_prompt
+Return strictly the JSON array of translated segments:"""
+
+                            payload = [scene_prompt] + scene_images if scene_images else scene_prompt
                             try:
                                 response = model.generate_content(payload)
                             except Exception as p_e:
-                                if scene_img is not None:
+                                if scene_images:
                                     response = model.generate_content(scene_prompt)
                                 else:
                                     raise p_e
@@ -1000,7 +1116,7 @@ Translate this scene into natural, continuous spoken Khmer cinema dubbing:"""
                     # [Pass 2/2] Two-Pass AI Cinema Review & Audit Engine
                     if self.enable_ai_review and batch_draft:
                         logger.info(f"🔍 [Pass 2/2] កំពុងផ្ទៀងផ្ទាត់សកម្មភាព & អត្ថន័យកញ្ចប់ទី {b_idx + 1}/{total_batches} (AI Cinema Review Pass)...")
-                        batch_draft = self.review_and_audit_batch(batch_draft, scene_img=scene_img)
+                        batch_draft = self.review_and_audit_batch(batch_draft, scene_images=scene_images)
 
                     translated_segments.extend(batch_draft)
                     logger.info(f"បកប្រែរួចរាល់កញ្ចប់ទី {b_idx + 1}/{total_batches}")
