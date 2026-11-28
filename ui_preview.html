@@ -84,6 +84,21 @@
       background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
       animation: shimmerMove 1.8s infinite;
     }
+
+    /* Updater Modal Custom Scrollbar */
+    .changelog-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .changelog-scroll::-webkit-scrollbar-track {
+      background: #050a16;
+    }
+    .changelog-scroll::-webkit-scrollbar-thumb {
+      background: #0284c7;
+      border-radius: 4px;
+    }
+    .changelog-scroll::-webkit-scrollbar-thumb:hover {
+      background: #00f0ff;
+    }
   </style>
 </head>
 <body class="p-3 md:p-5 text-slate-100 flex flex-col justify-between min-h-screen">
@@ -102,9 +117,12 @@
             <h1 class="text-xl md:text-2xl font-black tracking-wider text-pink-500 drop-shadow-[0_0_12px_rgba(255,0,127,0.4)]">
               JAI AUTO DUBBING
             </h1>
-            <span class="text-[10px] md:text-xs px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 font-mono font-bold shadow-sm">
-              v2.5 PRO
+            <span id="lblAppVersion" class="cursor-pointer text-[10px] md:text-xs px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 font-mono font-bold shadow-sm hover:bg-cyan-900/60 hover:border-cyan-300 transition-all flex items-center space-x-1" title="ចុចដើម្បីមើលប្រវត្តិកំណែប្រែ (Changelog)">
+              <span id="lblVersionText">v1.0.8 PRO</span> <span>📋</span>
             </span>
+            <button id="btnHeaderUpdater" class="cursor-pointer text-[10px] md:text-xs px-2.5 py-0.5 rounded-full bg-[#3b1a03] border border-amber-500/80 text-amber-300 font-bold shadow-[0_0_10px_rgba(245,158,11,0.35)] hover:bg-amber-900/80 transition-all flex items-center space-x-1 animate-pulse" title="ចុចដើម្បី Update ទៅ v1.0.9">
+              <span>✨</span> <span>v1.0.9 មានកំណែថ្មី</span>
+            </button>
           </div>
           <p class="text-xs text-cyan-400 font-medium">
             AI Video Dubbing Suite • Chinese ➔ Khmer • BGM Preserved • Fast Render
@@ -402,6 +420,164 @@
           💾 រក្សាទុក (Save)
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- JAI DUBBER UPDATER MODAL (100% PIXEL PERFECT MATCHING SCREENSHOT) -->
+  <div id="changelogModal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 transition-all">
+    <div class="bg-[#070c18] border-[1.5px] border-[#00f0ff] w-full max-w-[560px] rounded-xl p-4 sm:p-5 space-y-3.5 shadow-[0_0_35px_rgba(0,240,255,0.22)] max-h-[92vh] overflow-hidden flex flex-col">
+      
+      <!-- Top Header Bar -->
+      <div class="flex items-center justify-between pb-0.5">
+        <div class="flex items-center space-x-3">
+          <!-- Sparkle Gold Box -->
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center text-slate-950 font-black shadow-md shadow-amber-500/25 shrink-0">
+            <svg class="w-5 h-5 fill-slate-950" viewBox="0 0 24 24">
+              <path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8L12 2Z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-sm sm:text-base font-black tracking-wider text-white uppercase font-sans">
+                JAI DUBBER UPDATER
+              </h2>
+              <span id="lblModalCurrentBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-[#0c2438] border border-[#0ea5e9]/70 text-[#38bdf8] font-bold">
+                v1.0.8
+              </span>
+            </div>
+            <p class="text-[11px] text-[#38bdf8] font-medium pt-0.5">
+              ប្រព័ន្ធធ្វើបច្ចុប្បន្នភាពស្វ័យប្រវត្តិ
+            </p>
+          </div>
+        </div>
+        <!-- Close Button -->
+        <button id="btnCloseChangelog" class="text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-lg w-8 h-8 flex items-center justify-center text-lg transition-all active:scale-90 cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <!-- Version Update Card (Gold Border) -->
+      <div id="cardNewVersion" class="border-[1.5px] border-[#f59e0b] rounded-lg bg-[#0e1422] p-3 sm:p-3.5 flex items-center justify-between shadow-md gap-3">
+        <div class="flex items-center space-x-3">
+          <!-- Up Arrow Circle Icon -->
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 border-[#f59e0b] bg-[#f59e0b]/15 flex items-center justify-center text-[#f59e0b] shrink-0">
+            <svg class="w-5 h-5 stroke-[#f59e0b] stroke-[2.5] fill-none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" fill="none" />
+              <path d="M12 16V8M8 12l4-4 4 4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2">
+              <span id="lblTargetVersion" class="text-white font-extrabold text-sm sm:text-base tracking-tight font-sans">v1.0.9</span>
+              <span id="badgeNewVersion" class="bg-[#451a03] text-[#f59e0b] border border-[#f59e0b]/80 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                មានកំណែថ្មី
+              </span>
+            </div>
+            <div id="lblSubTargetVersion" class="text-[11px] text-[#fef3c7]/65 font-medium font-sans">
+              JAI DUBBER v1.0.9
+            </div>
+          </div>
+        </div>
+        <!-- Update Now Button -->
+        <button id="btnUpdateNow" class="bg-gradient-to-r from-[#f59e0b] via-[#fbbf24] to-[#f59e0b] hover:from-[#fbbf24] hover:to-[#f59e0b] text-slate-950 font-black text-xs px-3.5 sm:px-4 py-2 rounded-md shadow-md shadow-amber-500/25 active:scale-95 transition-all flex items-center space-x-1.5 cursor-pointer whitespace-nowrap">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
+            <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z"/>
+            <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z"/>
+          </svg>
+          <span id="lblUpdateBtnText">Update Now</span>
+        </button>
+      </div>
+
+      <!-- Update Progress Box (Animated when downloading) -->
+      <div id="updateProgressBox" class="hidden border border-cyan-500/60 rounded-lg bg-[#0c182c] p-3 space-y-2">
+        <div class="flex justify-between items-center text-xs">
+          <span id="lblUpdateStatus" class="text-cyan-300 font-bold flex items-center space-x-1.5">
+            <span class="inline-block animate-spin">⏳</span>
+            <span>កំពុងទាញយកបច្ចុប្បន្នភាព...</span>
+          </span>
+          <span id="lblUpdatePct" class="text-amber-400 font-mono font-bold">0%</span>
+        </div>
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+          <div id="updateProgressBar" class="h-full bg-gradient-to-r from-amber-400 via-cyan-400 to-emerald-400 transition-all duration-300 w-0"></div>
+        </div>
+      </div>
+
+      <!-- Changelog Details Section -->
+      <div class="space-y-2 flex-1 overflow-hidden flex flex-col">
+        <div class="flex items-center justify-between">
+          <div class="text-xs sm:text-[13px] font-bold text-[#38bdf8] flex items-center space-x-1.5">
+            <span>✨</span> <span>ព័ត៌មាននៃការកែប្រែថ្មី (v1.0.9)</span>
+          </div>
+          <button id="btnToggleFullHistory" class="text-[10px] text-cyan-400 hover:text-cyan-200 underline cursor-pointer">
+            មើលកំណែប្រែមុនៗ (Full History)
+          </button>
+        </div>
+
+        <!-- Scrollable Cyan-Bordered Box -->
+        <div id="changelogScrollBox" class="border-[1.2px] border-[#0284c7] rounded-lg bg-[#050a16] p-3.5 sm:p-4 max-h-[280px] overflow-y-auto space-y-2.5 text-xs text-slate-200 changelog-scroll">
+          <div class="font-bold text-cyan-300 text-xs flex items-center space-x-1">
+            <span>🚀</span> <span>JAI DUBBER v1.0.9</span>
+          </div>
+          <div class="font-bold text-amber-400 text-xs pt-0.5">
+            ✨ ថ្មី (New &amp; Improved)
+          </div>
+
+          <ul class="space-y-2.5 text-[11px] sm:text-xs text-slate-300 leading-relaxed pl-0.5">
+            <li class="flex items-start space-x-2">
+              <span class="text-amber-400 font-bold shrink-0 mt-0.5">⚡</span>
+              <div>
+                <b class="text-white">JAI POOL Pro Window:</b>
+                <span class="text-slate-300">បើកកាឡាក់សីដោយពុំចាំបាច់បិទ... ដាក់ផ្ទាំង CMD ឲ្យរត់ស្រួល, បង្ហាញ Real-Time Traffic/Latency និងពន្លឺ Glow ពណ៌ស្រស់តាម Gmail នីមួយៗ</span>
+              </div>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-cyan-400 font-bold shrink-0 mt-0.5">🔀</span>
+              <div>
+                <b class="text-white">Multi-Gmail Auto Balance &amp; Unlimited Nodes:</b>
+                <span class="text-slate-300">បែងចែក Request ស្មើគ្នាដោយ Round-Robin, បញ្ឈប់ការរត់ Gmail គាំងដោយចុច (គ្រាប់ចុច 5), ភ្ជាប់ Right Click Menu (</span>
+                <span class="px-1.5 py-0.5 rounded bg-[#0c2438] border border-[#0284c7] text-cyan-300 font-mono text-[10px] font-bold">Pause</span>,
+                <span class="px-1.5 py-0.5 rounded bg-[#0c2438] border border-[#0284c7] text-cyan-300 font-mono text-[10px] font-bold">Priority</span>,
+                <span class="px-1.5 py-0.5 rounded bg-[#0c2438] border border-[#0284c7] text-cyan-300 font-mono text-[10px] font-bold">Disconnect</span>
+                <span class="text-slate-300">) និងបើក Browser Auto ពេល Sign in with Google</span>
+              </div>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-emerald-400 font-bold shrink-0 mt-0.5">🧹</span>
+              <div>
+                <b class="text-white">Smart CLEAR CACHE:</b>
+                <span class="text-slate-300">សម្អាត Cache តាមប្រភេទដោយមិនប៉ះពាល់ Disk ជាក់ស្ដែង ដោយមិនប៉ះពាល់ Settings, License, Gmail Pool ឬ AI Models</span>
+              </div>
+            </li>
+            <li class="flex items-start space-x-2">
+              <span class="text-pink-400 font-bold shrink-0 mt-0.5">🎙️</span>
+              <div>
+                <b class="text-white">Persistent Voice Clone:</b>
+                <span class="text-slate-300">រក្សាសំឡេង Clone (</span>
+                <span class="px-1.5 py-0.5 rounded bg-[#0c2438] border border-[#0284c7] text-cyan-300 font-mono text-[10px] font-bold">VoxCPM2</span>
+                <span class="text-slate-300">) អចិន្ត្រៃយ៍ក្នុង Local មិនបាច់ដំឡើងឡើងវិញ</span>
+              </div>
+            </li>
+          </ul>
+
+          <!-- Full History container inserted dynamically -->
+          <div id="fullHistoryContainer" class="hidden pt-3 border-t border-slate-800/80 space-y-3">
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-between pt-1 border-t border-slate-800/80">
+        <!-- Status with Glowing Green Dot -->
+        <div class="flex items-center space-x-2 text-xs font-mono text-slate-300 font-medium">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] inline-block animate-pulse"></span>
+          <span id="lblFooterCurrentVersion" class="font-bold text-slate-300">JAI DUBBER v1.0.8</span>
+        </div>
+        <!-- Close Button -->
+        <button id="btnDismissChangelog" class="bg-[#00c8e0] hover:bg-[#38e1f5] text-slate-950 font-black text-xs px-6 py-2 rounded-lg shadow-md shadow-cyan-500/25 active:scale-95 transition-all cursor-pointer">
+          Close
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -774,6 +950,114 @@
       modal.classList.add('hidden');
       alert('ការកំណត់ត្រូវបានរក្សាទុកដោយជោគជ័យ!');
     });
+
+    // JAI DUBBER UPDATER Modal Handlers
+    function openUpdaterModal() {
+      const modal = document.getElementById('changelogModal');
+      modal.classList.remove('hidden');
+    }
+
+    document.getElementById('lblAppVersion').addEventListener('click', openUpdaterModal);
+    const btnHeaderUpdater = document.getElementById('btnHeaderUpdater');
+    if (btnHeaderUpdater) btnHeaderUpdater.addEventListener('click', openUpdaterModal);
+
+    document.getElementById('btnCloseChangelog').addEventListener('click', () => {
+      document.getElementById('changelogModal').classList.add('hidden');
+    });
+    document.getElementById('btnDismissChangelog').addEventListener('click', () => {
+      document.getElementById('changelogModal').classList.add('hidden');
+    });
+
+    // Close on backdrop click
+    document.getElementById('changelogModal').addEventListener('click', (e) => {
+      if (e.target.id === 'changelogModal') {
+        document.getElementById('changelogModal').classList.add('hidden');
+      }
+    });
+
+    // Toggle full history
+    const btnToggleHist = document.getElementById('btnToggleFullHistory');
+    if (btnToggleHist) {
+      btnToggleHist.addEventListener('click', () => {
+        const histContainer = document.getElementById('fullHistoryContainer');
+        if (histContainer) {
+          const isHidden = histContainer.classList.contains('hidden');
+          if (isHidden) {
+            histContainer.classList.remove('hidden');
+            btnToggleHist.textContent = 'លាក់ប្រវត្តិ (Hide History)';
+          } else {
+            histContainer.classList.add('hidden');
+            btnToggleHist.textContent = 'មើលកំណែប្រែមុនៗ (Full History)';
+          }
+        }
+      });
+    }
+
+    // Handle Update Now
+    let isUpdating = false;
+    const btnUpdateNow = document.getElementById('btnUpdateNow');
+    if (btnUpdateNow) {
+      btnUpdateNow.addEventListener('click', () => {
+        if (isUpdating) return;
+        isUpdating = true;
+
+        const progressBox = document.getElementById('updateProgressBox');
+        const progressBar = document.getElementById('updateProgressBar');
+        const lblPct = document.getElementById('lblUpdatePct');
+        const lblStatus = document.getElementById('lblUpdateStatus');
+        const btnText = document.getElementById('lblUpdateBtnText');
+
+        if (progressBox) progressBox.classList.remove('hidden');
+        btnUpdateNow.classList.add('opacity-70', 'cursor-not-allowed');
+        btnText.textContent = 'Updating...';
+
+        let progress = 0;
+        const steps = [
+          { pct: 20, status: 'កំពុងតភ្ជាប់ទៅកាន់ Update Server...' },
+          { pct: 45, status: 'កំពុងទាញយក JAI DUBBER v1.0.9 (24.8 MB)...' },
+          { pct: 75, status: 'កំពុងផ្ទៀងផ្ទាត់ Core AI Models & Scripts...' },
+          { pct: 95, status: 'កំពុងដំឡើងកំណែថ្មី v1.0.9...' },
+          { pct: 100, status: '🎉 ជោគជ័យ! JAI DUBBER បាន Update ទៅកាន់ v1.0.9 រួចរាល់!' }
+        ];
+
+        let stepIndex = 0;
+        const timer = setInterval(() => {
+          if (stepIndex < steps.length) {
+            const step = steps[stepIndex];
+            progress = step.pct;
+            if (progressBar) progressBar.style.width = `${progress}%`;
+            if (lblPct) lblPct.textContent = `${progress}%`;
+            if (lblStatus) {
+              lblStatus.innerHTML = progress === 100 
+                ? `<span>🎉</span> <span>${step.status}</span>` 
+                : `<span class="inline-block animate-spin">⏳</span> <span>${step.status}</span>`;
+            }
+            stepIndex++;
+          } else {
+            clearInterval(timer);
+            isUpdating = false;
+
+            // Update badges to current
+            const badgeCur = document.getElementById('lblModalCurrentBadge');
+            const footerCur = document.getElementById('lblFooterCurrentVersion');
+            const headerVer = document.getElementById('lblVersionText');
+            if (badgeCur) badgeCur.textContent = 'v1.0.9';
+            if (footerCur) footerCur.textContent = 'JAI DUBBER v1.0.9 (Latest)';
+            if (headerVer) headerVer.textContent = 'v1.0.9 PRO';
+
+            // Mark update button as complete
+            btnUpdateNow.className = 'bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-md shadow-md transition-all flex items-center space-x-1.5 cursor-default';
+            btnUpdateNow.innerHTML = '<span>✓</span> <span>Up to Date</span>';
+
+            const headerBtn = document.getElementById('btnHeaderUpdater');
+            if (headerBtn) {
+              headerBtn.className = 'text-[10px] md:text-xs px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/80 text-emerald-300 font-bold flex items-center space-x-1';
+              headerBtn.innerHTML = '<span>✓</span> <span>v1.0.9 កំណែចុងក្រោយ</span>';
+            }
+          }
+        }, 450);
+      });
+    }
 
     // Check for pywebview injection readiness
     window.addEventListener('pywebviewready', () => {

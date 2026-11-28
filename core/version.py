@@ -11,6 +11,18 @@ __edition__ = "Pure Dual-Voice Studio Audio Edition"
 
 CHANGELOG = [
     {
+        "version": "1.0.9",
+        "date": "2026-11-27",
+        "title": "JAI DUBBER v1.0.9 (New & Improved)",
+        "badge": "មានកំណែថ្មី",
+        "highlights": [
+            "⚡ JAI POOL Pro Window: បើកកាឡាក់សីដោយពុំចាំបាច់បិទ... ដាក់ផ្ទាំង CMD ឲ្យរត់ស្រួល, បង្ហាញ Real-Time Traffic/Latency និងពន្លឺ Glow ពណ៌ស្រស់តាម Gmail នីមួយៗ",
+            "🔀 Multi-Gmail Auto Balance & Unlimited Nodes: បែងចែក Request ស្មើគ្នាដោយ Round-Robin, បញ្ឈប់ការរត់ Gmail គាំងដោយចុច (គ្រាប់ចុច 5), ភ្ជាប់ Right Click Menu (Pause, Priority, Disconnect) និងបើក Browser Auto ពេល Sign in with Google",
+            "🧹 Smart CLEAR CACHE: សម្អាត Cache តាមប្រភេទដោយមិនប៉ះពាល់ Disk ជាក់ស្ដែង ដោយមិនប៉ះពាល់ Settings, License, Gmail Pool ឬ AI Models",
+            "🎙️ Persistent Voice Clone: រក្សាសំឡេង Clone (VoxCPM2) អចិន្ត្រៃយ៍ក្នុង Local មិនបាច់ដំឡើងឡើងវិញ"
+        ]
+    },
+    {
         "version": "2.5.4",
         "date": "2026-11-03",
         "title": "Pure Dual-Voice Studio Audio Edition (Piseth & Sreymom Only)",

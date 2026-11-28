@@ -254,16 +254,19 @@ class VocalSeparator:
         
         audio_name = Path(audio_wav).stem
 
+        # Ensure a valid Demucs model name is used even if called as fallback from BS-Roformer
+        demucs_model = "htdemucs" if ("roformer" in str(self.model_name).lower() or ".ckpt" in str(self.model_name).lower()) else self.model_name
+
         # Acquire GPU lock for separation stage
         with _gpu_separation_lock:
-            logger.info(f"⚡ កំពុងបំបែកសំឡេង BGM លើ GPU {self.device} (Demucs {self.model_name})...")
+            logger.info(f"⚡ កំពុងបំបែកសំឡេង BGM លើ GPU {self.device} (Demucs {demucs_model})...")
 
             demucs_exe = shutil.which("demucs")
             base_cmd = [demucs_exe] if demucs_exe else [sys.executable, "-m", "demucs"]
 
             cmd = base_cmd + [
                 "--two-stems", "vocals",
-                "-n", self.model_name,
+                "-n", demucs_model,
                 "-d", self.device,
                 "--shifts", "1",
                 "-o", str(output_path),
@@ -300,7 +303,7 @@ class VocalSeparator:
                     if self.device == "cuda":
                         fallback_cmd = base_cmd + [
                             "--two-stems", "vocals",
-                            "-n", self.model_name,
+                            "-n", demucs_model,
                             "-d", "cpu",
                             "--shifts", "0",
                             "-o", str(output_path),
@@ -319,7 +322,7 @@ class VocalSeparator:
                             logger.error(f"Demucs CPU fallback error: {sub_res.stderr}")
                             return None, None
 
-                model_folder = output_path / self.model_name / audio_name
+                model_folder = output_path / demucs_model / audio_name
                 vocals_path = model_folder / "vocals.wav"
                 no_vocals_path = model_folder / "no_vocals.wav"
 

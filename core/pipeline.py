@@ -251,9 +251,9 @@ class DubbingPipeline:
             sync_engine = AudioSyncEngine(
                 enable_time_stretch=cfg.get("enable_time_stretch", True),
                 max_stretch_ratio=float(cfg.get("max_stretch_ratio", 1.30)),
-                bgm_volume=float(cfg.get("bgm_volume", 0.28)),
+                bgm_volume=float(cfg.get("bgm_volume", 0.85)),
                 voice_volume=float(cfg.get("voice_volume", 1.35)),
-                ducking_factor=float(cfg.get("ducking_factor", 0.25))
+                ducking_factor=float(cfg.get("ducking_factor", 0.48))
             )
             
             dialogue_res = sync_engine.build_synchronized_dialogue_track(

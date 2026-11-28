@@ -44,9 +44,9 @@ class AudioSyncEngine:
         self,
         enable_time_stretch: bool = True,
         max_stretch_ratio: float = 1.30,
-        bgm_volume: float = 0.28,
+        bgm_volume: float = 0.85,
         voice_volume: float = 1.35,
-        ducking_factor: float = 0.25
+        ducking_factor: float = 0.48
     ):
         self.enable_time_stretch = enable_time_stretch
         # Safe acoustic ceiling: Khmer syllables remain clear and natural up to 1.35x
@@ -377,14 +377,16 @@ class AudioSyncEngine:
                 except Exception:
                     speech_intervals = []
 
-            # Condition 1: Keep BGM & Sound FX (Demucs AI vocal removal)
-            # Automatic ducking: Lower BGM to 20%-28% during speech so dialogue is 100% upfront and clear!
-            duck_factor = min(0.28, max(0.18, self.ducking_factor))
+            # Condition 1: Keep BGM & Sound FX (Demucs / BS-Roformer AI vocal removal)
+            # Cinema dynamic ducking: Keeps Foley FX (swords, hits, horses) and BGM audible at ~48% during dialogue,
+            # and full impact (85%) during action and speech pauses.
+            duck_factor = min(0.65, max(0.35, self.ducking_factor))
+            base_volume = max(0.60, self.bgm_volume)
             bgm_processed = self.apply_dynamic_ducking(
                 bgm,
                 speech_intervals,
                 duck_factor=duck_factor,
-                base_volume=self.bgm_volume,
+                base_volume=base_volume,
                 fade_ms=150
             )
             final_mix = bgm_processed.overlay(dialogue)

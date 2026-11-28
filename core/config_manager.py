@@ -15,9 +15,9 @@ DEFAULT_CONFIG = {
     "khmer_voice": "auto",  # 'km-KH-PisethNeural' (ប្រុស), 'km-KH-SreymomNeural' (ស្រី), 'auto' (ឆ្លាស់គ្នា)
     "voice_speed": "+10%",
     "voice_pitch": "+0Hz",
-    "bgm_volume": 0.28,
+    "bgm_volume": 0.85,
     "voice_volume": 1.35,
-    "ducking_factor": 0.25,
+    "ducking_factor": 0.48,
     "enable_time_stretch": True,
     "max_stretch_ratio": 1.30,
     "render_mode": "fast_copy",  # 'fast_copy' (-c:v copy for 3s render), 'nvenc' (h264_nvenc)
